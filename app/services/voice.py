@@ -8,18 +8,17 @@ from config import Config
 
 logger = logging.getLogger(__name__)
 
-MENU_PROMPT = "Welcome. Press 1 to leave a voicemail, or press 2 for the weather."
-MENU_REPROMPT = "I didn't catch that. Press 1 for a voicemail, or 2 for weather."
-VOICEMAIL_PROMPT = (
-    "Please leave your voicemail after the beep. Press pound when you are finished."
-)
-VOICEMAIL_DONE = "Thank you. Your message has been saved. Goodbye."
-WEATHER_FALLBACK = "Sorry, I can't get the weather right now. Please try again later."
-GENERIC_ERROR = "Sorry, something went wrong. Please try again."
+MENU_PROMPT = "Hi there! So glad you called. Press 1 to leave a message. Or press 2 to hear today's weather!"
+MENU_REPROMPT = "Oops, I didn't catch that. Press 1 to leave a message. Or press 2 for the weather!"
+VOICEMAIL_PROMPT = "Okay! After the beep, tell me your message. When you're all done, press the pound key, or just hang up."
+VOICEMAIL_DONE = "Got it! Your message is saved. Talk to you soon. Bye bye!"
+WEATHER_FALLBACK = "Hmm, I can't check the weather right now. Try me again in a little while!"
+WEATHER_GOODBYE = "Have a great day! Bye bye!"
+GENERIC_ERROR = "Oops! Something went wrong. Let's try that again."
 
 STATIC_PROMPTS = [
     MENU_PROMPT, MENU_REPROMPT, VOICEMAIL_PROMPT,
-    VOICEMAIL_DONE, WEATHER_FALLBACK, GENERIC_ERROR,
+    VOICEMAIL_DONE, WEATHER_FALLBACK, WEATHER_GOODBYE, GENERIC_ERROR,
 ]
 
 

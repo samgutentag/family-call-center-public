@@ -23,6 +23,12 @@ class Config:
     AUDIO_DIR = os.path.join(DATA_DIR, "audio")
     DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY", "")
     DEEPGRAM_TTS_MODEL = os.getenv("DEEPGRAM_TTS_MODEL", "aura-2-andromeda-en")
+    # Playback speed for synthesized audio (1.0 = normal; <1 slows it down via
+    # ffmpeg atempo after synthesis). Requires ffmpeg when not 1.0.
+    try:
+        SPEECH_RATE = float(os.getenv("SPEECH_RATE") or "1.0")
+    except ValueError:
+        SPEECH_RATE = 1.0
 
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 

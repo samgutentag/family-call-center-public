@@ -15,13 +15,41 @@ thresholds:
 rules:
   school:
     bands:
-      - { up_to: 52,  outfit: "wear pants, a long sleeve, and a jacket" }
-      - { up_to: 62,  outfit: "wear pants and a long sleeve" }
-      - { up_to: 70,  outfit: "wear your skort and a long sleeve" }
-      - { up_to: 999, outfit: "wear your skort and a t-shirt" }
+      - { up_to: 52,  outfit: "a bundle-up day for pants, a long sleeve, and a jacket" }
+      - { up_to: 62,  outfit: "a pants and long sleeve day" }
+      - { up_to: 70,  outfit: "a skort and long sleeve day" }
+      - { up_to: 999, outfit: "a skort and t-shirt day" }
   weekend:
     bands:
-      - { up_to: 52,  outfit: "wear pants, a long sleeve, and a jacket" }
-      - { up_to: 62,  outfit: "wear pants and a long sleeve" }
-      - { up_to: 70,  outfit: "wear pants and a t-shirt" }
-      - { up_to: 999, outfit: "wear shorts and a t-shirt" }
+      - { up_to: 52,  outfit: "a bundle-up day for pants, a long sleeve, and a jacket" }
+      - { up_to: 62,  outfit: "a pants and long sleeve day" }
+      - { up_to: 70,  outfit: "a pants and t-shirt day" }
+      - { up_to: 999, outfit: "a shorts and t-shirt day" }
+
+# Goofy weather intros, by weather type. One is picked per day (rotates by date).
+# Edit freely — add or remove lines. "default" is used for anything unmapped.
+scenarios:
+  sunny:
+    - "Wakey wakey, the sun is out to play!"
+    - "The sun put on its party hat today!"
+    - "It's a big bright sunshine day. Hooray!"
+  cloudy:
+    - "The clouds are playing peekaboo with the sun today!"
+    - "Look up! Fluffy cotton-candy clouds in the sky."
+    - "It's a gray and snuggly kind of day."
+  foggy:
+    - "Whoa, it's foggy, like the sky is wearing a cozy blanket!"
+    - "It's a misty, mysterious morning. Spooky!"
+  rainy:
+    - "Drip, drop! It's a splishy-splashy puddle day. Grab your rain boots!"
+    - "Pitter patter, here comes the rain. The worms are out to say hi!"
+    - "It's a rainy day. Perfect for jumping in puddles!"
+  snowy:
+    - "Brrr, it's a snowy day. Let's build a snowman!"
+    - "Snowflakes are falling. Catch one on your tongue!"
+  stormy:
+    - "Boom, boom! The sky is putting on a show today. Stay cozy!"
+    - "It's a rumbly, grumbly storm day. Snuggle up inside!"
+  default:
+    - "Let's find out what the sky is up to today!"
+    - "What a day to peek outside!"

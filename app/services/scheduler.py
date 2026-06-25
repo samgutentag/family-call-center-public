@@ -27,7 +27,9 @@ def refresh(now=None):
         logger.info("Weather unconfigured; skipping refresh")
         return
     day_type = daytype.for_today()
-    instruction = wardrobe.build_instruction(forecast, day_type, rules)
+    instruction = wardrobe.build_instruction(
+        forecast, day_type, rules, today=(now or datetime.datetime.now()).date()
+    )
     fetched_at = (now or datetime.datetime.now()).isoformat()
     weather_cache.write(instruction, day_type, fetched_at)
     logger.info("Weather cache refreshed (%s)", day_type)

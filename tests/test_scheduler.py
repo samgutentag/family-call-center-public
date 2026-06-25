@@ -19,7 +19,7 @@ def test_refresh_writes_cache():
     row = weather_cache.read()
     assert row["day_type"] == "school"
     assert row["fetched_at"].startswith("2026-06-24")
-    assert "today" in row["instruction"]
+    assert "Today" in row["instruction"]
 
 
 def test_refresh_skips_when_unconfigured():

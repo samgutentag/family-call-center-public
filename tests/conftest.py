@@ -18,6 +18,7 @@ os.environ["PUSHOVER_TOKEN"] = ""
 os.environ["PUSHOVER_USER"] = ""
 os.environ["WEATHER_LAT"] = ""
 os.environ["WEATHER_LON"] = ""
+os.environ["SPEECH_RATE"] = "1.0"
 
 import pytest
 from app import create_app

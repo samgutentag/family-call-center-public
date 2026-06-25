@@ -36,9 +36,12 @@ def weather():
                 logger.exception("Live weather refresh failed")
         if row:
             voice.speak(vr, row["instruction"])
+            voice.speak(vr, row["instruction"])
+            voice.speak(vr, voice.WEATHER_GOODBYE)
+            vr.hangup()
         else:
             voice.speak(vr, voice.WEATHER_FALLBACK)
-        vr.redirect(f"{Config.BASE_URL}/call")
+            vr.redirect(f"{Config.BASE_URL}/call")
         return twiml_response(vr)
     except Exception:
         logger.exception("Error in /weather")

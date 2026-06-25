@@ -150,3 +150,8 @@ otherwise it falls back to Twilio's built-in voice (the app works either way).
   prompt/weather audio lives there (never voicemail recordings).
 - The cache grows slowly: the static prompts are a fixed handful, but the daily weather line adds
   roughly one small mp3 per day under `data/audio/`; prune old files manually if it ever matters.
+- Slow the voice for a child with `SPEECH_RATE` in `.env` (e.g. `0.85`). This
+  time-stretches the audio with **ffmpeg** (pitch preserved), so install it on
+  the Pi: `sudo apt install ffmpeg`. At `SPEECH_RATE=1.0` ffmpeg isn't used; if
+  it's missing while a slowdown is set, the app logs a warning and serves
+  normal-speed audio (no crash).

@@ -19,7 +19,9 @@ def test_weather_plays_cached_instruction(client):
         resp = client.post("/weather", data={"From": "+1"})
     body = resp.get_data(as_text=True)
     assert "<Play>" in body
-    assert f"/audio/{name}" in body
+    assert body.count(f"/audio/{name}") == 2
+    assert "<Hangup />" in body
+    assert "<Redirect>" not in body
     os.remove(audio_path)
 
 
@@ -33,7 +35,8 @@ def test_weather_speaks_fresh_cache(client):
         resp = client.post("/weather", data={"From": "+1"})
     body = resp.get_data(as_text=True)
     assert "wear shorts. It's 80." in body
-    assert "/call" in body
+    assert "<Hangup />" in body
+    assert "<Redirect>" not in body
     refresh.assert_not_called()
 
 
@@ -46,7 +49,9 @@ def test_weather_refreshes_when_stale(client):
          patch("app.routes.weather.pushover.send_notification"):
         resp = client.post("/weather", data={"From": "+1"})
     refresh.assert_called_once()
-    assert "fresh line." in resp.get_data(as_text=True)
+    body = resp.get_data(as_text=True)
+    assert body.count("fresh line.") == 2
+    assert "<Hangup />" in body
 
 
 def test_weather_fallback_when_no_cache(client):
@@ -55,7 +60,7 @@ def test_weather_fallback_when_no_cache(client):
          patch("app.routes.weather.scheduler.refresh", side_effect=RuntimeError("x")), \
          patch("app.routes.weather.pushover.send_notification"):
         resp = client.post("/weather", data={"From": "+1"})
-    assert "can't get the weather" in resp.get_data(as_text=True).lower()
+    assert "can't check the weather" in resp.get_data(as_text=True).lower()
 
 
 def test_weather_survives_pushover_failure(client):
@@ -65,7 +70,9 @@ def test_weather_survives_pushover_failure(client):
          patch("app.routes.weather.pushover.send_notification", side_effect=RuntimeError("x")):
         resp = client.post("/weather", data={"From": "+1"})
     assert resp.status_code == 200
-    assert "ok." in resp.get_data(as_text=True)
+    body = resp.get_data(as_text=True)
+    assert body.count("ok.") == 2
+    assert "<Hangup />" in body
 
 
 def test_weather_refreshes_when_stale_nonempty(client):
@@ -77,4 +84,6 @@ def test_weather_refreshes_when_stale_nonempty(client):
          patch("app.routes.weather.pushover.send_notification"):
         resp = client.post("/weather", data={"From": "+1"})
     refresh.assert_called_once()
-    assert "fresh line." in resp.get_data(as_text=True)
+    body = resp.get_data(as_text=True)
+    assert body.count("fresh line.") == 2
+    assert "<Hangup />" in body
