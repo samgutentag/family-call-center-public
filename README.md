@@ -2,7 +2,11 @@
 
 > **Note:** This repository is unmaintained, unsupported, and shared as-is as untested example code.
 
-A kid's landline built on a Raspberry Pi. When a caller dials your Twilio number they hear a warm, slowed voice (Deepgram Aura) ask them to press 1 or 2. Press 1 and they leave a voicemail: the recording saves to the Pi, Deepgram transcribes it, and a Pushover notification with the transcript lands on a parent's phone. Press 2 and they hear today's weather as a kid-friendly spoken line (date, a goofy weather joke, what to wear to school or on a weekend, jacket/sunscreen/rain flags, morning and afternoon temps), played twice then a friendly hang-up, with the same text texted to the parent. Voicemails are browsable on a private tailnet-only inbox page. Voice prompts are cached mp3s; if Deepgram is unavailable the app falls back to Twilio's built-in voice automatically.
+My kid is years away from a phone of her own but still wants to call people. So I gave a simple corded landline one phone number and something to do behind it.
+
+Call the number and a warm voice (slowed down so a kid can actually follow it) answers: press 1 to leave a message, press 2 for the weather. Press 1 and the recording lands on a Raspberry Pi, gets transcribed, and texts me what she said. Press 2 and she hears today's forecast as a goofy, kid-shaped line (the date, a joke about the sky, what to wear, the temperatures), read twice, then a cheerful goodbye. The weather check texts me too, so I know what she was told. Old voicemails live on a little inbox page I can only open from my own network.
+
+The voice is Deepgram Aura. The transcripts and weather are Deepgram and Open-Meteo. None of it is load-bearing: if Deepgram ever goes quiet, the call falls back to Twilio's built-in voice on its own, and the phone still works.
 
 ![What happens when you call](docs/assets/call-flow.svg)
 
@@ -23,7 +27,7 @@ A kid's landline built on a Raspberry Pi. When a caller dials your Twilio number
 
 ### The voice
 
-Voice prompts are synthesized once by Deepgram Aura, time-stretched by ffmpeg at your chosen `SPEECH_RATE` (pitch is preserved), and cached as mp3s under `data/audio/`. Twilio fetches them at `/audio/<file>`. Static prompts warm at startup; the daily weather line renders on the scheduler run. If `DEEPGRAM_API_KEY` is empty, the app falls back to Twilio's built-in `<Say>` verb.
+Deepgram Aura synthesizes each prompt once. ffmpeg time-stretches it to your `SPEECH_RATE` (pitch stays put, it just slows down), and it caches as an mp3 under `data/audio/`. Twilio fetches the file at `/audio/<file>`. Static prompts warm up at startup, and the daily weather line renders on the scheduler run, so a call never waits on synthesis. Leave `DEEPGRAM_API_KEY` empty and the whole thing falls back to Twilio's built-in `<Say>` voice.
 
 ![How the voice is made](docs/assets/voice-pipeline.svg)
 
