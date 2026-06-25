@@ -37,3 +37,14 @@ def test_refresh_skips_when_windows_missing():
         scheduler.refresh()
     get.assert_not_called()
     write.assert_not_called()
+
+
+def test_refresh_prerenders_audio():
+    fc = {"day_high": 66, "morning_high": 60, "afternoon_high": 66,
+          "uv_max": 3, "rain_chance": 0, "conditions": "sunny"}
+    with patch("app.services.scheduler.open_meteo.get_forecast", return_value=fc), \
+         patch("app.services.scheduler.daytype.for_today", return_value="school"), \
+         patch("app.services.scheduler.weather_cache.write"), \
+         patch("app.services.scheduler.voice.ensure_audio") as ensure:
+        scheduler.refresh(now=datetime.datetime(2026, 6, 24, 4, 0, 0))
+    ensure.assert_called_once()

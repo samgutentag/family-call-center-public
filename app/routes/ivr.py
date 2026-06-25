@@ -4,6 +4,7 @@ from twilio.twiml.voice_response import VoiceResponse
 
 from app.utils.twilio_validator import validate_twilio_request
 from app.utils.twiml import error_response, main_menu_twiml, twiml_response
+from app.services import voice
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ def route():
         elif digit == "2":
             vr.redirect(f"{Config.BASE_URL}/weather")
         else:
-            vr.say("I didn't catch that. Press 1 for a voicemail, or 2 for weather.")
+            voice.speak(vr, voice.MENU_REPROMPT)
             vr.redirect(f"{Config.BASE_URL}/call")
 
         return twiml_response(vr)

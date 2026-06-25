@@ -20,6 +20,9 @@ class Config:
 
     DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
     RECORDINGS_DIR = os.path.join(DATA_DIR, "recordings")
+    AUDIO_DIR = os.path.join(DATA_DIR, "audio")
+    DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY", "")
+    DEEPGRAM_TTS_MODEL = os.getenv("DEEPGRAM_TTS_MODEL", "aura-2-andromeda-en")
 
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 
@@ -36,10 +39,12 @@ class Config:
     WEATHER_LON = os.getenv("WEATHER_LON", "")
     WEATHER_PLACE_NAME = os.getenv("WEATHER_PLACE_NAME", "")
 
-    WARDROBE_CONFIG = os.getenv(
-        "WARDROBE_CONFIG", os.path.join(os.path.dirname(__file__), "config", "wardrobe.yml")
+    # `or` (not the getenv default) so an empty value in .env falls back to the
+    # repo default rather than resolving to "" and failing to load.
+    WARDROBE_CONFIG = os.getenv("WARDROBE_CONFIG") or os.path.join(
+        os.path.dirname(__file__), "config", "wardrobe.yml"
     )
-    DAY_OVERRIDES = os.getenv(
-        "DAY_OVERRIDES", os.path.join(os.path.dirname(__file__), "config", "day_overrides.yml")
+    DAY_OVERRIDES = os.getenv("DAY_OVERRIDES") or os.path.join(
+        os.path.dirname(__file__), "config", "day_overrides.yml"
     )
     SCHEDULER_ENABLED = os.getenv("SCHEDULER_ENABLED", "true").lower() == "true"

@@ -1,4 +1,26 @@
+import os
 from unittest.mock import patch
+
+import config
+from app.services import voice
+
+
+def test_weather_plays_cached_instruction(client):
+    instruction = "wear shorts. It's 80."
+    os.makedirs(config.Config.AUDIO_DIR, exist_ok=True)
+    name = voice.audio_name(instruction)
+    audio_path = os.path.join(config.Config.AUDIO_DIR, name)
+    with open(audio_path, "wb") as f:
+        f.write(b"mp3")  # non-empty: a real cache hit
+    row = {"instruction": instruction, "day_type": "weekend", "fetched_at": "2026-06-24T04:00:00"}
+    with patch("app.routes.weather.weather_cache.read", return_value=row), \
+         patch("app.routes.weather.weather_cache.is_fresh", return_value=True), \
+         patch("app.routes.weather.pushover.send_notification"):
+        resp = client.post("/weather", data={"From": "+1"})
+    body = resp.get_data(as_text=True)
+    assert "<Play>" in body
+    assert f"/audio/{name}" in body
+    os.remove(audio_path)
 
 
 def test_weather_speaks_fresh_cache(client):

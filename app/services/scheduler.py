@@ -5,7 +5,7 @@ import time
 
 from croniter import croniter
 
-from app.services import daytype, open_meteo, wardrobe, weather_cache
+from app.services import daytype, open_meteo, voice, wardrobe, weather_cache
 from app.utils.yaml_config import load_yaml
 from config import Config
 
@@ -31,6 +31,10 @@ def refresh(now=None):
     fetched_at = (now or datetime.datetime.now()).isoformat()
     weather_cache.write(instruction, day_type, fetched_at)
     logger.info("Weather cache refreshed (%s)", day_type)
+    try:
+        voice.ensure_audio(instruction)
+    except Exception:
+        logger.warning("Failed to pre-render weather audio", exc_info=True)
 
 
 def next_fire(cron_list, after):

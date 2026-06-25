@@ -135,3 +135,18 @@ Press 2 reads a pre-computed clothing instruction, refreshed on a schedule.
   (`sudo systemctl restart family-ivr`).
 - The forecast comes from Open-Meteo (free, no API key); set `WEATHER_LAT`
   and `WEATHER_LON` in `.env`.
+
+## Voice (Deepgram, optional)
+
+The phone speaks with a Deepgram Aura voice when `DEEPGRAM_API_KEY` is set,
+otherwise it falls back to Twilio's built-in voice (the app works either way).
+
+- Set `DEEPGRAM_API_KEY` in `.env`. Pick a voice with `DEEPGRAM_TTS_MODEL`
+  (default `aura-2-andromeda-en`); change the string to audition others.
+- Prompts are synthesized once and cached under `data/audio/` (content-addressed
+  by text), so each line is generated at most once. The daily weather line is
+  rendered by the scheduler; the fixed prompts are warmed at startup.
+- The mp3s are served publicly at `/audio/<file>` so Twilio can fetch them; only
+  prompt/weather audio lives there (never voicemail recordings).
+- The cache grows slowly: the static prompts are a fixed handful, but the daily weather line adds
+  roughly one small mp3 per day under `data/audio/`; prune old files manually if it ever matters.

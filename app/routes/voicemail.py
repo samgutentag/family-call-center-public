@@ -8,7 +8,7 @@ from flask import Blueprint, request
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 
-from app.services import pushover
+from app.services import pushover, voice
 from app.utils.db import init_db, log_recording
 from app.utils.twilio_validator import validate_twilio_request
 from app.utils.twiml import error_response, twiml_response
@@ -30,10 +30,7 @@ def voicemail():
         caller = request.form.get("From", "unknown")
         callback_url = f"{Config.BASE_URL}/voicemail/callback?caller={quote(caller)}"
         vr = VoiceResponse()
-        vr.say(
-            "Please leave your voicemail after the beep. "
-            "Press pound when you are finished."
-        )
+        voice.speak(vr, voice.VOICEMAIL_PROMPT)
         vr.record(
             action=f"{Config.BASE_URL}/voicemail/done",
             recording_status_callback=callback_url,
@@ -54,7 +51,7 @@ def voicemail_done():
     """Thank the caller and end the call after recording."""
     try:
         vr = VoiceResponse()
-        vr.say("Thank you. Your message has been saved. Goodbye.")
+        voice.speak(vr, voice.VOICEMAIL_DONE)
         vr.hangup()
         return twiml_response(vr)
     except Exception:

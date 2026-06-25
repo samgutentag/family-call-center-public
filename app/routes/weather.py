@@ -3,7 +3,7 @@ import logging
 from flask import Blueprint, request
 from twilio.twiml.voice_response import VoiceResponse
 
-from app.services import pushover, scheduler, weather_cache
+from app.services import pushover, scheduler, voice, weather_cache
 from app.utils.twilio_validator import validate_twilio_request
 from app.utils.twiml import error_response, twiml_response
 from config import Config
@@ -35,9 +35,9 @@ def weather():
             except Exception:
                 logger.exception("Live weather refresh failed")
         if row:
-            vr.say(row["instruction"])
+            voice.speak(vr, row["instruction"])
         else:
-            vr.say("Sorry, I can't get the weather right now. Please try again later.")
+            voice.speak(vr, voice.WEATHER_FALLBACK)
         vr.redirect(f"{Config.BASE_URL}/call")
         return twiml_response(vr)
     except Exception:
