@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 230" width="680" height="230"
+  role="img"
+  aria-label="Pipeline diagram: five tiles left to right showing how the morning weather line is built ahead of time. Tile 1 (amber): At 4am every day. Tile 2 (blue): Get the forecast from Open-Meteo, temps and UV. Tile 3 (teal, wider): Build the line, recipe is date plus goofy line plus outfit plus both temps. Tile 4 (blue): Saved, ready to play. Tile 5 (teal): Press 2 equals instant. Each tile has an amber scan bar that fills over 0.5s then turns green with a check badge, left to right, looping every 9 seconds. Reads correctly when frozen.">
+
+  <style>
+    .bar { transform-box: fill-box; transform-origin: left center; }
+
+    /* 9s loop. Scan = 0.5s = 5.556%. Gap = 0.3s = 3.333% between end and next start.
+       T1: 0% to 5.556%  green at 5.556%  badge at 6.667%
+       T2: 9% to 14.556%  green at 14.556%  badge at 15.667%
+       T3: 18% to 23.556%  green at 23.556%  badge at 24.667%
+       T4: 27% to 32.556%  green at 32.556%  badge at 33.667%
+       T5: 36% to 41.556%  green at 41.556%  badge at 42.667%
+       hold 42.667% to 100% (approx 5.2s linger)
+    */
+    .bar1 { animation: wbBar1 9s linear infinite; }
+    .bar2 { animation: wbBar2 9s linear infinite; }
+    .bar3 { animation: wbBar3 9s linear infinite; }
+    .bar4 { animation: wbBar4 9s linear infinite; }
+    .bar5 { animation: wbBar5 9s linear infinite; }
+    .bdg1 { animation: wbBdg1 9s linear infinite; }
+    .bdg2 { animation: wbBdg2 9s linear infinite; }
+    .bdg3 { animation: wbBdg3 9s linear infinite; }
+    .bdg4 { animation: wbBdg4 9s linear infinite; }
+    .bdg5 { animation: wbBdg5 9s linear infinite; }
+
+    @keyframes wbBar1 {
+      0%              { transform: scaleX(0); fill: #e8932a; }
+      5.556%          { transform: scaleX(1); fill: #e8932a; }
+      6.556%,100%     { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes wbBar2 {
+      0%,9%           { transform: scaleX(0); fill: #e8932a; }
+      14.556%         { transform: scaleX(1); fill: #e8932a; }
+      15.556%,100%    { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes wbBar3 {
+      0%,18%          { transform: scaleX(0); fill: #e8932a; }
+      23.556%         { transform: scaleX(1); fill: #e8932a; }
+      24.556%,100%    { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes wbBar4 {
+      0%,27%          { transform: scaleX(0); fill: #e8932a; }
+      32.556%         { transform: scaleX(1); fill: #e8932a; }
+      33.556%,100%    { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes wbBar5 {
+      0%,36%          { transform: scaleX(0); fill: #e8932a; }
+      41.556%         { transform: scaleX(1); fill: #e8932a; }
+      42.556%,100%    { transform: scaleX(1); fill: #1d9b54; }
+    }
+
+    @keyframes wbBdg1 {
+      0%,6.556%    { opacity: 0; }
+      8.556%,100%  { opacity: 1; }
+    }
+    @keyframes wbBdg2 {
+      0%,15.556%   { opacity: 0; }
+      17.556%,100% { opacity: 1; }
+    }
+    @keyframes wbBdg3 {
+      0%,24.556%   { opacity: 0; }
+      26.556%,100% { opacity: 1; }
+    }
+    @keyframes wbBdg4 {
+      0%,33.556%   { opacity: 0; }
+      35.556%,100% { opacity: 1; }
+    }
+    @keyframes wbBdg5 {
+      0%,42.556%   { opacity: 0; }
+      44.556%,100% { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bar1,.bar2,.bar3,.bar4,.bar5,
+      .bdg1,.bdg2,.bdg3,.bdg4,.bdg5 { animation: none; }
+      .bar { transform: scaleX(1); fill: #1d9b54; }
+      .bdg1,.bdg2,.bdg3,.bdg4,.bdg5 { opacity: 1; }
+    }
+  </style>
+
+  <!-- White rounded background -->
+  <rect x="0" y="0" width="680" height="230" rx="10" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="16" y="26" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#3a4350">The morning weather, ready before you call</text>
+
+  <g font-family="ui-sans-serif, system-ui, sans-serif">
+
+    <!-- T1: At 4am, every day (amber) x=16 w=88 -->
+    <rect x="16" y="54" width="88" height="54" rx="6" fill="#fdf3e7" stroke="#c47a15" stroke-width="1.5"/>
+    <text x="60" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#c47a15">At 4am,</text>
+    <text x="60" y="86" text-anchor="middle" font-size="10" font-weight="700" fill="#c47a15">every day</text>
+    <rect x="16" y="113" width="88" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar1" x="16" y="113" width="88" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg1"><circle cx="100" cy="56" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="97,56 99,58.4 103,53.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Arrow 1 -->
+    <text x="110" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- T2: Get the forecast (blue) x=116 w=116 -->
+    <rect x="116" y="54" width="116" height="54" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="174" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#1f5fc0">Get the forecast</text>
+    <text x="174" y="86" text-anchor="middle" font-size="9.5" fill="#346DDB">temps + UV, daily</text>
+    <rect x="116" y="113" width="116" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar2" x="116" y="113" width="116" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg2"><circle cx="228" cy="56" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="225,56 227,58.4 231,53.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Arrow 2 -->
+    <text x="238" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- T3: Build the line (teal, wider) x=244 w=164 -->
+    <rect x="244" y="54" width="164" height="54" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="326" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7d70">Build the line</text>
+    <text x="326" y="84" text-anchor="middle" font-size="9" fill="#18a394">date + goofy line + outfit</text>
+    <text x="326" y="96" text-anchor="middle" font-size="9" fill="#18a394">+ both temps</text>
+    <rect x="244" y="113" width="164" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar3" x="244" y="113" width="164" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg3"><circle cx="404" cy="56" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="401,56 403,58.4 407,53.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Arrow 3 -->
+    <text x="414" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- T4: Saved, ready to play (blue) x=420 w=114 -->
+    <rect x="420" y="54" width="114" height="54" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="477" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#1f5fc0">Saved, ready</text>
+    <text x="477" y="86" text-anchor="middle" font-size="10" font-weight="700" fill="#1f5fc0">to play</text>
+    <rect x="420" y="113" width="114" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar4" x="420" y="113" width="114" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg4"><circle cx="530" cy="56" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="527,56 529,58.4 533,53.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Arrow 4 -->
+    <text x="540" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- T5: Press 2 = instant (teal) x=546 w=118 -->
+    <rect x="546" y="54" width="118" height="54" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="605" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7d70">Press 2 =</text>
+    <text x="605" y="86" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7d70">instant</text>
+    <rect x="546" y="113" width="118" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar5" x="546" y="113" width="118" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg5"><circle cx="660" cy="56" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="657,56 659,58.4 663,53.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Caption -->
+    <text x="340" y="155" text-anchor="middle" font-size="11.5" fill="#5b6573">A daily job builds the spoken line in advance and caches it, so pressing 2 plays instantly instead of waiting on the internet.</text>
+
+  </g>
+</svg>

@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 250" width="680" height="250" role="img"
+  aria-label="How the voice is made: a left-to-right pipeline of five steps. Step 1 (blue): Prompt text. Step 2 (teal): Deepgram Aura voice luna. Step 3 (blue): Slow to 0.85 speed via ffmpeg. Step 4 (blue): Saved as an mp3. Step 5 (blue): Phone plays it. Each step animates with an amber scan bar that turns green with a check badge, sequenced left to right over about 9 seconds, then holds and loops. Below step 2, a dashed slate arrow points down to a fallback tile: If Deepgram is off, Twilio plain voice. The fallback tile is static and dimmer, representing the else path. Caption: Each prompt is synthesized once, slowed so a child can follow, and cached. If Deepgram is ever unavailable, the call still works on the built-in voice.">
+
+  <style>
+    .bar { transform-box: fill-box; transform-origin: left center; }
+
+    /* 9s loop. Each scan = 0.5s. Step offsets (s): 0, 1.3, 2.6, 3.9, 5.2. Hold from 5.7s to 9s (~3.3s). */
+    /* As percentages of 9s:
+       step1 scan: 0% to 5.556%    -> green at 6.667%
+       step2 scan: 14.444% to 20%  -> green at 21.111%
+       step3 scan: 28.889% to 34.444% -> green at 35.556%
+       step4 scan: 43.333% to 48.889% -> green at 50%
+       step5 scan: 57.778% to 63.333% -> green at 64.444%
+       hold: 64.444% to 100%
+    */
+    .bar1 { animation: vpBar1 9s linear infinite; }
+    .bar2 { animation: vpBar2 9s linear infinite; }
+    .bar3 { animation: vpBar3 9s linear infinite; }
+    .bar4 { animation: vpBar4 9s linear infinite; }
+    .bar5 { animation: vpBar5 9s linear infinite; }
+    .bdg1 { animation: vpBdg1 9s linear infinite; }
+    .bdg2 { animation: vpBdg2 9s linear infinite; }
+    .bdg3 { animation: vpBdg3 9s linear infinite; }
+    .bdg4 { animation: vpBdg4 9s linear infinite; }
+    .bdg5 { animation: vpBdg5 9s linear infinite; }
+
+    @keyframes vpBar1 {
+      0%                   { transform: scaleX(0); fill: #e8932a; }
+      5.556%               { transform: scaleX(1); fill: #e8932a; }
+      6.667%, 100%         { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes vpBar2 {
+      0%, 14.444%          { transform: scaleX(0); fill: #e8932a; }
+      20%                  { transform: scaleX(1); fill: #e8932a; }
+      21.111%, 100%        { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes vpBar3 {
+      0%, 28.889%          { transform: scaleX(0); fill: #e8932a; }
+      34.444%              { transform: scaleX(1); fill: #e8932a; }
+      35.556%, 100%        { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes vpBar4 {
+      0%, 43.333%          { transform: scaleX(0); fill: #e8932a; }
+      48.889%              { transform: scaleX(1); fill: #e8932a; }
+      50%, 100%            { transform: scaleX(1); fill: #1d9b54; }
+    }
+    @keyframes vpBar5 {
+      0%, 57.778%          { transform: scaleX(0); fill: #e8932a; }
+      63.333%              { transform: scaleX(1); fill: #e8932a; }
+      64.444%, 100%        { transform: scaleX(1); fill: #1d9b54; }
+    }
+
+    @keyframes vpBdg1 { 0%, 6.667% { opacity: 0; } 8.667%, 100% { opacity: 1; } }
+    @keyframes vpBdg2 { 0%, 21.111% { opacity: 0; } 23.111%, 100% { opacity: 1; } }
+    @keyframes vpBdg3 { 0%, 35.556% { opacity: 0; } 37.556%, 100% { opacity: 1; } }
+    @keyframes vpBdg4 { 0%, 50% { opacity: 0; } 52%, 100% { opacity: 1; } }
+    @keyframes vpBdg5 { 0%, 64.444% { opacity: 0; } 66.444%, 100% { opacity: 1; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bar1, .bar2, .bar3, .bar4, .bar5,
+      .bdg1, .bdg2, .bdg3, .bdg4, .bdg5 { animation: none; }
+      .bar { transform: scaleX(1); fill: #1d9b54; }
+      .bdg1, .bdg2, .bdg3, .bdg4, .bdg5 { opacity: 1; }
+    }
+  </style>
+
+  <!-- White rounded background -->
+  <rect x="0" y="0" width="680" height="250" rx="10" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="16" y="24" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#3a4350">How the voice is made</text>
+
+  <!--
+    Layout: 5 tiles in main row.
+    Tile width=96, arrow gap=18. Total = 5*96 + 4*18 = 552. Start x = (648-552)/2 + 16 = 80.
+    Tile x positions: t1=80, t2=194, t3=308, t4=422, t5=536
+    Tile top y=42, height=46. Bar y=92, height=5.
+    Arrow y-center = 42+23 = 65.
+    Fallback: dashed arrow down from bottom-center of tile2 (x=194+48=242, y=88) to fallback tile top y=120.
+    Fallback tile: x=170 width=144 y=120 height=46.
+    Caption y=208.
+  -->
+
+  <g font-family="ui-sans-serif, system-ui, sans-serif">
+
+    <!-- === MAIN ROW === -->
+
+    <!-- Tile 1: Prompt text (blue) -->
+    <rect x="80" y="42" width="96" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="128" y="61" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Prompt</text>
+    <text x="128" y="74" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">text</text>
+    <!-- track -->
+    <rect x="80" y="92" width="96" height="5" rx="2.5" fill="#d9dee6"/>
+    <!-- scan bar -->
+    <rect class="bar bar1" x="80" y="92" width="96" height="5" rx="2.5" fill="#e8932a"/>
+    <!-- badge -->
+    <g class="bdg1">
+      <circle cx="172" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="169,44 171,46.4 175,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow 1->2 -->
+    <text x="185" y="69" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Tile 2: Deepgram Aura "luna" (teal) -->
+    <rect x="194" y="42" width="96" height="46" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="242" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#0e7d70">Deepgram Aura</text>
+    <text x="242" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#0e7d70">voice &#8220;luna&#8221;</text>
+    <!-- track -->
+    <rect x="194" y="92" width="96" height="5" rx="2.5" fill="#d9dee6"/>
+    <!-- scan bar -->
+    <rect class="bar bar2" x="194" y="92" width="96" height="5" rx="2.5" fill="#e8932a"/>
+    <!-- badge -->
+    <g class="bdg2">
+      <circle cx="286" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="283,44 285,46.4 289,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow 2->3 -->
+    <text x="299" y="69" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Tile 3: Slow to 0.85 speed, ffmpeg (blue) -->
+    <rect x="308" y="42" width="96" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="356" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#1f5fc0">Slow to 0.85x</text>
+    <text x="356" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#1f5fc0">speed, ffmpeg</text>
+    <!-- track -->
+    <rect x="308" y="92" width="96" height="5" rx="2.5" fill="#d9dee6"/>
+    <!-- scan bar -->
+    <rect class="bar bar3" x="308" y="92" width="96" height="5" rx="2.5" fill="#e8932a"/>
+    <!-- badge -->
+    <g class="bdg3">
+      <circle cx="400" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="397,44 399,46.4 403,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow 3->4 -->
+    <text x="413" y="69" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Tile 4: Saved as an mp3 (blue) -->
+    <rect x="422" y="42" width="96" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="470" y="61" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Saved as</text>
+    <text x="470" y="74" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">an mp3</text>
+    <!-- track -->
+    <rect x="422" y="92" width="96" height="5" rx="2.5" fill="#d9dee6"/>
+    <!-- scan bar -->
+    <rect class="bar bar4" x="422" y="92" width="96" height="5" rx="2.5" fill="#e8932a"/>
+    <!-- badge -->
+    <g class="bdg4">
+      <circle cx="514" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="511,44 513,46.4 517,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow 4->5 -->
+    <text x="527" y="69" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Tile 5: Phone plays it (blue) -->
+    <rect x="536" y="42" width="96" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="584" y="61" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Phone</text>
+    <text x="584" y="74" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">plays it</text>
+    <!-- track -->
+    <rect x="536" y="92" width="96" height="5" rx="2.5" fill="#d9dee6"/>
+    <!-- scan bar -->
+    <rect class="bar bar5" x="536" y="92" width="96" height="5" rx="2.5" fill="#e8932a"/>
+    <!-- badge -->
+    <g class="bdg5">
+      <circle cx="628" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="625,44 627,46.4 631,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- === FALLBACK BRANCH === -->
+    <!-- Dashed arrow: down from bottom-center of tile2 (242, 88) to top of fallback tile (242, 128) -->
+    <line x1="242" y1="99" x2="242" y2="126" stroke="#9aa3b0" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <polygon points="242,130 238,122 246,122" fill="#9aa3b0"/>
+
+    <!-- "else" label beside the arrow -->
+    <text x="250" y="116" font-size="9" fill="#9aa3b0" font-style="italic">else</text>
+
+    <!-- Fallback tile (slate) -->
+    <rect x="162" y="132" width="160" height="42" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5" opacity="0.85"/>
+    <text x="242" y="149" text-anchor="middle" font-size="9" font-weight="700" fill="#5b6573">If Deepgram is off:</text>
+    <text x="242" y="163" text-anchor="middle" font-size="9" font-weight="700" fill="#5b6573">Twilio plain voice</text>
+
+    <!-- Caption -->
+    <text x="340" y="212" text-anchor="middle" font-size="11.5" fill="#5b6573">Each prompt is synthesized once, slowed so a child can follow, and cached.</text>
+    <text x="340" y="228" text-anchor="middle" font-size="11.5" fill="#5b6573">If Deepgram is ever unavailable, the call still works on the built-in voice.</text>
+
+  </g>
+</svg>

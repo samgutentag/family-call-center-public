@@ -7,3 +7,7 @@ logs/
 data/recordings/
 data/ivr.db
 docs/superpowers/
+.superpowers/
+data/audio/
+data/ivr.db-shm
+data/ivr.db-wal

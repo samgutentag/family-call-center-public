@@ -44,10 +44,8 @@
   .defn dd { margin:.1rem 0 .7rem; color:var(--ink); }
   hr.soft { border:none; border-top:1px solid var(--rule); margin:1.6rem 0; }
   figure { margin:1.6rem 0; }
-  figure .diagram { border:1px solid var(--rule); border-radius:8px; padding:1.1rem 1rem; background:#fff; }
-  figure svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  figure img { display:block; max-width:100%; height:auto; }
   figcaption { font-family:-apple-system,system-ui,sans-serif; font-size:.8rem; color:var(--mute); margin-top:.55rem; text-align:center; }
-  .svg-label { font-family:-apple-system,"Segoe UI",system-ui,sans-serif; }
   .updated { color:var(--faint); font-size:.8rem; font-family:-apple-system,system-ui,sans-serif; }
   @media print {
     body { max-width:none; font-size:11.5pt; }
@@ -61,7 +59,7 @@
 <body>
 
 <h1>Family Call Center: User Guide</h1>
-<p class="subtitle">A kids' landline that lets them call one number, leave you a secret, or hear the weather. Written to be read cold, with no prior knowledge of the app assumed.</p>
+<p class="subtitle">A kids' landline that lets them call one number, leave a message for you, or hear today's weather. Written to be read cold, with no prior knowledge of the app assumed.</p>
 
 <nav>
   <h2>Contents</h2>
@@ -69,440 +67,197 @@
     <li><a href="#what">What this is</a></li>
     <li><a href="#vocab">Words you need first</a></li>
     <li><a href="#calling">Calling: the menu</a></li>
-    <li><a href="#press1">Press 1: leave a voicemail</a></li>
+    <li><a href="#press1">Press 1: leave a message</a></li>
     <li><a href="#press2">Press 2: hear the weather</a></li>
+    <li><a href="#voice">The voice</a></li>
     <li><a href="#notifications">What you get notified about</a></li>
     <li><a href="#inbox">The inbox: listening back</a></li>
-    <li><a href="#storage">Where a voicemail goes</a></li>
+    <li><a href="#storage">Where things live / privacy</a></li>
     <li><a href="#setup">Setting it up (for the grown-up)</a></li>
     <li><a href="#faq">Good to know</a></li>
   </ol>
 </nav>
 
 <h2 id="what">1. What this is</h2>
-<p>This is the little phone system behind a kid's landline. The child has a simple corded phone (the <a href="https://tincan.kids/">Tin Can</a> is the one this was built around), and it dials one number. That number rings this app, which answers and plays a short menu: press 1 to leave a voicemail, press 2 to hear the weather.</p>
-<p>It runs on a Raspberry Pi at home. When a voicemail comes in, the Pi saves the recording, deletes it from the phone company so the Pi holds the only copy, and sends you a push notification on your phone. You listen back from a small private web page that only works on your home network.</p>
-<p>What it is <em>not</em>: it is not the dialing service for the kid's phone itself, and it does not replace a real phone line. It is just the friendly robot that answers when the kid calls this one number. It does not transcribe messages to text, the weather is United States only, and the only person who gets notified is whoever you point the notifications at.</p>
-<p>The rest of this guide walks the two things a kid does (press 1, press 2), the two things you get (a notification, an inbox), where the files live, and how it is wired up.</p>
+<p>This is the little phone system behind a kid's landline. The child has a simple corded phone (the <a href="https://tincan.kids/">Tin Can</a> is the one this was built around), and it dials one number. That number rings this app, which answers in a warm, friendly voice and plays a short menu: press 1 to leave a message, press 2 to hear the weather.</p>
+<p>It runs on a Raspberry Pi at home. The whole call speaks in a warm Deepgram Aura voice, slowed down a little so a child can follow along. When a message comes in, the Pi saves the recording, transcribes it to text, deletes it from the phone company so the Pi holds the only copy, and sends you a push notification with the transcript right there in the ping. You listen back from a small private web page that only works on your home network.</p>
+<p>What it is <em>not</em>: it does not let the child dial out to other numbers, and it is not a replacement for a real phone line. It is just the friendly robot that answers when the kid calls this one number. The weather works anywhere in the world (Open-Meteo covers global forecasts). The only person who gets notified is whoever you point the notifications at.</p>
+<p>The rest of this guide walks the two things a kid does (press 1, press 2), how the voice works, the two things you get (a notification, an inbox), where the files live, and how it is wired up.</p>
 
 <h2 id="vocab">2. Words you need first</h2>
 <dl class="defn">
   <dt>IVR</dt>
   <dd>Interactive Voice Response. The "press 1 for this, press 2 for that" menu you hear when you call a business. This app is a tiny, friendly one built for a family.</dd>
   <dt>Twilio</dt>
-  <dd>The phone company in the cloud. It owns the actual phone number, answers the call, plays the audio, and records the voicemail. Your Pi just tells Twilio what to do, one step at a time.</dd>
+  <dd>The phone company in the cloud. It owns the actual phone number, answers the call, plays the audio, and records the message. Your Pi just tells Twilio what to do, one step at a time.</dd>
   <dt>The Pi</dt>
   <dd>A Raspberry Pi (a small always-on computer) sitting at your house running this app. It is the brain: it decides what the caller hears, stores the recordings, and sends notifications.</dd>
+  <dt>Deepgram Aura (the voice)</dt>
+  <dd>The service that turns written text into the warm spoken voice you hear on the call. The deployed voice is "luna" (model <code>aura-2-luna-en</code>), slowed to 85% speed by ffmpeg so a child can follow it easily. Every prompt is synthesized once and cached on the Pi, so there is no delay during the call.</dd>
+  <dt>Deepgram nova-3 (transcription)</dt>
+  <dd>The same service, but in reverse: it listens to the recorded message and turns it into text. That text goes straight into your Pushover notification so you can read the message without even opening the inbox.</dd>
+  <dt>Open-Meteo</dt>
+  <dd>A free, open weather API. No account or API key needed. The app uses it to pull today's forecast for your home location once every morning at 4 a.m. and cache it for the day.</dd>
+  <dt>Pushover</dt>
+  <dd>A simple phone-notification service. The Pi sends it a short message and your phone buzzes. This is how you find out a message was left, and you get the transcript right in the ping.</dd>
   <dt>Tailscale Funnel</dt>
   <dd>A way to give your home Pi a public web address so Twilio can reach it over the internet, without opening your home network to the world. Twilio talks to the Pi through this funnel.</dd>
   <dt>Tailnet and MagicDNS</dt>
   <dd>Your private Tailscale network and the friendly hostname for the Pi on it (something like <code>pi.your-tailnet.ts.net</code>). Devices on your tailnet (your phone, your laptop) can reach the Pi privately. The public internet cannot.</dd>
   <dt>The Host gate</dt>
-  <dd>The rule that keeps the inbox private. The Pi answers on two addresses (the public funnel and the private tailnet name), and it only serves the inbox and recordings when the request arrives on the private name. Everything else gets a "not found".</dd>
-  <dt>Pushover</dt>
-  <dd>A simple phone-notification service. The Pi sends it a short message and your phone buzzes. This is how you find out a voicemail was left.</dd>
-  <dt>NWS</dt>
-  <dd>The United States National Weather Service. Its free forecast feed is what "press 2" reads aloud. No account or API key needed, which is why it was chosen.</dd>
+  <dd>The rule that keeps the inbox private. The Pi answers on two addresses (the public funnel and the private tailnet name), and it only serves the inbox and recordings when the request arrives on the private name. Everything else gets a plain "not found".</dd>
 </dl>
 
 <h2 id="calling">3. Calling: the menu</h2>
 <p>When the kid picks up their phone and calls the number, the app answers and says:</p>
-<p><em>"Welcome. Press 1 to leave a voicemail, or press 2 for the weather."</em></p>
-<p>That is the whole menu. Press 1 and it starts recording. Press 2 and it reads the weather. Press anything else, or wait too long, and it just repeats the menu rather than hanging up, so a kid mashing buttons never gets stuck.</p>
+<p><em>"Hi there! So glad you called. Press 1 to leave a message. Or press 2 to hear today's weather!"</em></p>
+<p>That is the whole menu. Press 1 and it starts recording. Press 2 and it reads the weather. Press anything else, or wait too long without pressing anything, and it says <em>"Oops, I didn't catch that. Press 1 to leave a message. Or press 2 for the weather!"</em> and tries again rather than hanging up, so a kid mashing buttons never gets stuck.</p>
 
 <figure>
-  <div class="diagram">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 290" width="660" height="290"
-  role="img"
-  aria-label="Diagram: What happens when a kid calls. A phone call starts at Dial the number, then reaches a Menu: press 1 or 2. From the menu, two branches: the top pipeline (press 1, blue) goes through Press 1, Record (beep, up to 5 min, hash ends), Saved on the Pi, then Pushover New voicemail. The bottom pipeline (press 2, teal) goes through Press 2, Pushover Weather check, Speaks the forecast, then Back to menu. Each stage animates with an amber scan bar that turns green with a check badge, left to right, top pipeline first then bottom. When frozen the tiles and labels carry the full story.">
-  <style>
-    .bar { transform-box: fill-box; transform-origin: left center; }
-    .barS1 { animation: cfBarS1 10.5s linear infinite; }
-    .barS2 { animation: cfBarS2 10.5s linear infinite; }
-    .barT1 { animation: cfBarT1 10.5s linear infinite; }
-    .barT2 { animation: cfBarT2 10.5s linear infinite; }
-    .barT3 { animation: cfBarT3 10.5s linear infinite; }
-    .barT4 { animation: cfBarT4 10.5s linear infinite; }
-    .barB1 { animation: cfBarB1 10.5s linear infinite; }
-    .barB2 { animation: cfBarB2 10.5s linear infinite; }
-    .barB3 { animation: cfBarB3 10.5s linear infinite; }
-    .barB4 { animation: cfBarB4 10.5s linear infinite; }
-    .bdgS1 { animation: cfBdgS1 10.5s linear infinite; }
-    .bdgS2 { animation: cfBdgS2 10.5s linear infinite; }
-    .bdgT1 { animation: cfBdgT1 10.5s linear infinite; }
-    .bdgT2 { animation: cfBdgT2 10.5s linear infinite; }
-    .bdgT3 { animation: cfBdgT3 10.5s linear infinite; }
-    .bdgT4 { animation: cfBdgT4 10.5s linear infinite; }
-    .bdgB1 { animation: cfBdgB1 10.5s linear infinite; }
-    .bdgB2 { animation: cfBdgB2 10.5s linear infinite; }
-    .bdgB3 { animation: cfBdgB3 10.5s linear infinite; }
-    .bdgB4 { animation: cfBdgB4 10.5s linear infinite; }
-    @keyframes cfBarS1 { 0% { transform: scaleX(0); fill: #e8932a; } 4.762% { transform: scaleX(1); fill: #e8932a; } 5.762%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarS2 { 0%,7.619% { transform: scaleX(0); fill: #e8932a; } 12.381% { transform: scaleX(1); fill: #e8932a; } 13.381%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarT1 { 0%,15.238% { transform: scaleX(0); fill: #e8932a; } 20% { transform: scaleX(1); fill: #e8932a; } 21%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarT2 { 0%,22.857% { transform: scaleX(0); fill: #e8932a; } 27.619% { transform: scaleX(1); fill: #e8932a; } 28.619%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarT3 { 0%,30.476% { transform: scaleX(0); fill: #e8932a; } 35.238% { transform: scaleX(1); fill: #e8932a; } 36.238%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarT4 { 0%,38.095% { transform: scaleX(0); fill: #e8932a; } 42.857% { transform: scaleX(1); fill: #e8932a; } 43.857%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarB1 { 0%,47.619% { transform: scaleX(0); fill: #e8932a; } 52.381% { transform: scaleX(1); fill: #e8932a; } 53.381%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarB2 { 0%,55.238% { transform: scaleX(0); fill: #e8932a; } 60% { transform: scaleX(1); fill: #e8932a; } 61%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarB3 { 0%,62.857% { transform: scaleX(0); fill: #e8932a; } 67.619% { transform: scaleX(1); fill: #e8932a; } 68.619%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBarB4 { 0%,70.476% { transform: scaleX(0); fill: #e8932a; } 75.238% { transform: scaleX(1); fill: #e8932a; } 76.238%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes cfBdgS1 { 0%,5.762% { opacity: 0; } 7.762%,100% { opacity: 1; } }
-    @keyframes cfBdgS2 { 0%,13.381% { opacity: 0; } 15.381%,100% { opacity: 1; } }
-    @keyframes cfBdgT1 { 0%,21% { opacity: 0; } 23%,100% { opacity: 1; } }
-    @keyframes cfBdgT2 { 0%,28.619% { opacity: 0; } 30.619%,100% { opacity: 1; } }
-    @keyframes cfBdgT3 { 0%,36.238% { opacity: 0; } 38.238%,100% { opacity: 1; } }
-    @keyframes cfBdgT4 { 0%,43.857% { opacity: 0; } 45.857%,100% { opacity: 1; } }
-    @keyframes cfBdgB1 { 0%,53.381% { opacity: 0; } 55.381%,100% { opacity: 1; } }
-    @keyframes cfBdgB2 { 0%,61% { opacity: 0; } 63%,100% { opacity: 1; } }
-    @keyframes cfBdgB3 { 0%,68.619% { opacity: 0; } 70.619%,100% { opacity: 1; } }
-    @keyframes cfBdgB4 { 0%,76.238% { opacity: 0; } 78.238%,100% { opacity: 1; } }
-    @media (prefers-reduced-motion: reduce) {
-      .barS1,.barS2,.barT1,.barT2,.barT3,.barT4,.barB1,.barB2,.barB3,.barB4 { animation: none; }
-      .bdgS1,.bdgS2,.bdgT1,.bdgT2,.bdgT3,.bdgT4,.bdgB1,.bdgB2,.bdgB3,.bdgB4 { animation: none; }
-      .bar { transform: scaleX(1); fill: #1d9b54; }
-      .bdgS1,.bdgS2,.bdgT1,.bdgT2,.bdgT3,.bdgT4,.bdgB1,.bdgB2,.bdgB3,.bdgB4 { opacity: 1; }
-    }
-  </style>
-  <rect x="0" y="0" width="660" height="290" rx="10" fill="#ffffff"/>
-  <text x="16" y="26" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#3a4350">What happens when a kid calls</text>
-  <g font-family="ui-sans-serif, system-ui, sans-serif">
-    <rect x="16" y="58" width="72" height="44" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
-    <text x="52" y="76" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">Dial the</text>
-    <text x="52" y="89" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">number</text>
-    <rect x="16" y="106" width="72" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barS1" x="16" y="106" width="72" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgS1"><circle cx="82" cy="60" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="79,60 81,62.4 85,57.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="93" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
-    <rect x="100" y="58" width="80" height="44" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
-    <text x="140" y="76" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">Menu:</text>
-    <text x="140" y="89" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">press 1 or 2</text>
-    <rect x="100" y="106" width="80" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barS2" x="100" y="106" width="80" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgS2"><circle cx="174" cy="60" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="171,60 173,62.4 177,57.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <line x1="180" y1="80" x2="190" y2="80" stroke="#9aa3b0" stroke-width="1.5"/>
-    <line x1="190" y1="80" x2="190" y2="160" stroke="#9aa3b0" stroke-width="1.5"/>
-    <line x1="190" y1="80" x2="200" y2="80" stroke="#9aa3b0" stroke-width="1.5"/>
-    <line x1="190" y1="160" x2="200" y2="160" stroke="#9aa3b0" stroke-width="1.5"/>
-    <polygon points="200,76 208,80 200,84" fill="#9aa3b0"/>
-    <polygon points="200,156 208,160 200,164" fill="#9aa3b0"/>
-    <text x="188" y="75" text-anchor="middle" font-size="9" fill="#346DDB" font-weight="600">1</text>
-    <text x="188" y="155" text-anchor="middle" font-size="9" fill="#18a394" font-weight="600">2</text>
-    <rect x="208" y="58" width="78" height="44" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-    <text x="247" y="76" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Press 1</text>
-    <rect x="208" y="106" width="78" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barT1" x="208" y="106" width="78" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgT1"><circle cx="280" cy="60" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="277,60 279,62.4 283,57.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="293" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
-    <rect x="302" y="58" width="78" height="44" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-    <text x="341" y="73" text-anchor="middle" font-size="9" font-weight="700" fill="#1f5fc0">Record: beep,</text>
-    <text x="341" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#1f5fc0">up to 5 min,</text>
-    <text x="341" y="95" text-anchor="middle" font-size="9" font-weight="700" fill="#1f5fc0"># ends</text>
-    <rect x="302" y="106" width="78" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barT2" x="302" y="106" width="78" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgT2"><circle cx="374" cy="60" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="371,60 373,62.4 377,57.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="387" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
-    <rect x="396" y="58" width="78" height="44" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-    <text x="435" y="76" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Saved on</text>
-    <text x="435" y="89" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">the Pi</text>
-    <rect x="396" y="106" width="78" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barT3" x="396" y="106" width="78" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgT3"><circle cx="468" cy="60" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="465,60 467,62.4 471,57.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="481" y="84" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
-    <rect x="488" y="58" width="150" height="44" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-    <text x="563" y="76" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Pushover:</text>
-    <text x="563" y="89" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">New voicemail</text>
-    <rect x="488" y="106" width="150" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barT4" x="488" y="106" width="150" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgT4"><circle cx="632" cy="60" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="629,60 631,62.4 635,57.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <rect x="208" y="138" width="78" height="44" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-    <text x="247" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Press 2</text>
-    <rect x="208" y="186" width="78" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barB1" x="208" y="186" width="78" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgB1"><circle cx="280" cy="140" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="277,140 279,142.4 283,137.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="293" y="164" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
-    <rect x="302" y="138" width="78" height="44" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-    <text x="341" y="153" text-anchor="middle" font-size="9" font-weight="700" fill="#0e7d70">Pushover:</text>
-    <text x="341" y="164" text-anchor="middle" font-size="9" font-weight="700" fill="#0e7d70">Weather</text>
-    <text x="341" y="175" text-anchor="middle" font-size="9" font-weight="700" fill="#0e7d70">check</text>
-    <rect x="302" y="186" width="78" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barB2" x="302" y="186" width="78" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgB2"><circle cx="374" cy="140" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="371,140 373,142.4 377,137.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="387" y="164" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
-    <rect x="396" y="138" width="78" height="44" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-    <text x="435" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Speaks the</text>
-    <text x="435" y="169" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">forecast</text>
-    <rect x="396" y="186" width="78" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barB3" x="396" y="186" width="78" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgB3"><circle cx="468" cy="140" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="465,140 467,142.4 471,137.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="481" y="164" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8594;</text>
-    <rect x="488" y="138" width="150" height="44" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-    <text x="563" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Back to</text>
-    <text x="563" y="169" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">menu</text>
-    <rect x="488" y="186" width="150" height="5" rx="2.5" fill="#d9dee6"/>
-    <rect class="bar barB4" x="488" y="186" width="150" height="5" rx="2.5" fill="#e8932a"/>
-    <g class="bdgB4"><circle cx="632" cy="140" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="629,140 631,142.4 635,137.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <text x="16" y="85" font-size="9" fill="#9aa3b0" font-style="italic">shared</text>
-    <text x="16" y="130" font-size="9" fill="#346DDB" font-weight="600">press 1</text>
-    <text x="16" y="210" font-size="9" fill="#18a394" font-weight="600">press 2</text>
-    <text x="16" y="252" font-size="11.5" fill="#5b6573">Press 1 records a message and pings you. Press 2 reads the weather aloud and pings you too.</text>
-    <text x="16" y="268" font-size="11.5" fill="#5b6573">Either way you get a Pushover notification.</text>
-  </g>
-</svg>
-  </div>
-  <figcaption>The two paths a call can take. The menu is the fork; press 1 and press 2 each end in a notification to you.</figcaption>
+  <img src="assets/call-flow.svg" alt="Diagram showing what happens on a call: a shared start and menu step, then two branches -- press 1 leads to recording, saving on the Pi, and a Pushover notification; press 2 leads to speaking the forecast, a Pushover notification, and a goodbye hangup.">
+  <figcaption>The two paths a call can take. The menu is the fork. Either way you get a Pushover notification.</figcaption>
 </figure>
 
-<h2 id="press1">4. Press 1: leave a voicemail</h2>
-<p>This is the heart of it, the "press 1 to leave mom a secret" part. After the kid presses 1, the app says:</p>
-<p><em>"Please leave your voicemail after the beep. Press pound when you are finished."</em></p>
+<h2 id="press1">4. Press 1: leave a message</h2>
+<p>This is the heart of it -- the "press 1 to leave mom a secret" part. After the kid presses 1, the app says:</p>
+<p><em>"Okay! After the beep, tell me your message. When you're all done, press the pound key, or just hang up."</em></p>
 <p>Then it beeps and records. A few things are fixed in the code and worth knowing:</p>
 <ul>
   <li>The message can run up to <strong>5 minutes</strong> (300 seconds). After that it stops on its own.</li>
-  <li>Pressing <strong>#</strong> (pound) ends the recording early. A kid does not have to press anything though; hanging up or going quiet also ends it.</li>
-  <li>When it is done the app says <em>"Thank you. Your message has been saved. Goodbye."</em> and hangs up.</li>
+  <li>Pressing <strong>#</strong> (pound) ends the recording early. The kid does not have to press anything though -- hanging up also ends it.</li>
+  <li>When it is done, the app says <em>"Got it! Your message is saved. Talk to you soon. Bye bye!"</em> and hangs up.</li>
 </ul>
-<p>Behind the scenes, the moment the recording finishes the Pi downloads the audio, files it away, deletes it from Twilio, and sends you a notification. The kid does not see any of that. They just leave their secret and hang up.</p>
+<p>Behind the scenes, once the recording finishes the Pi downloads the audio, sends it to Deepgram to transcribe, saves the audio file, deletes it from Twilio, and sends you a Pushover notification with the transcript right there in the message. The kid does not see any of that. They just leave their secret and hang up.</p>
+<p>If transcription succeeds, the notification shows the transcript in quotes. If Deepgram heard nothing, it says "(No words were heard in this message.)". If transcription failed for any reason, it says "(Transcription failed.)" -- it never hides the failure or pretends it worked.</p>
 
 <h2 id="press2">5. Press 2: hear the weather</h2>
-<p>Press 2 and the app reads today's weather out loud, in plain words, something like <em>"In [your town], this afternoon will be sunny, with a temperature around 72 degrees. Tonight, clear, around 58 degrees."</em> Then it returns to the menu so the kid can do something else.</p>
-<p>The forecast comes from the National Weather Service, which is free and needs no account. You tell the app where "home" is once (a latitude, a longitude, and a spoken place name), and it reads the forecast for that spot.</p>
-<div class="note">If the weather service is slow or down, the app does not leave the kid hanging on a dead line. It says <em>"Sorry, I can't get the weather right now. Please try again later,"</em> and goes back to the menu. The same thing happens if you have not set a location yet.</div>
+<p>Press 2 and the app reads today's weather out loud, in plain, friendly words. It opens with the date, throws in a goofy weather line, then gives the outfit advice and any reminders, then both the morning and afternoon temperatures. Here is what a real forecast sounds like on a rainy school-day morning:</p>
+<p><em>"Good morning! It's Tuesday, June 24th. Drip, drop! It's a splishy-splashy puddle day. Grab your rain boots! Today is a pants and long sleeve day. And bring your rain jacket! This morning it's about 58 degrees. And this afternoon, it'll be about 65 degrees and rainy."</em></p>
+<p>The app plays that forecast <strong>twice</strong> in a row (so the child can catch anything they missed), then says <em>"Have a great day! Bye bye!"</em> and hangs up.</p>
 
-<h2 id="notifications">6. What you get notified about</h2>
-<p>You get a Pushover notification on your phone for both menu choices. They are deliberately short:</p>
+<figure>
+  <img src="assets/weather-build.svg" alt="Diagram showing how the weather forecast is built: Open-Meteo provides the raw forecast, wardrobe.yml contributes the outfit bands and goofy lines, the scheduler combines them at 4am into a cached instruction, and the call plays that instruction twice then says goodbye.">
+  <figcaption>The forecast is built fresh each morning at 4 a.m. and cached. When the kid calls, the app plays the cached text so the call is instant.</figcaption>
+</figure>
+
+<h3>How the forecast line is built</h3>
+<p>The spoken line has a fixed shape:</p>
+<ol>
+  <li><strong>Date:</strong> always opens with "Good morning! It's [day of week], [Month] [date]."</li>
+  <li><strong>Goofy line:</strong> a fun one-liner picked for the weather type (sunny, cloudy, rainy, snowy, stormy, foggy). It rotates by date so it is never the same two days in a row.</li>
+  <li><strong>Outfit:</strong> "Today is [outfit description]." On school days (Monday through Friday) the bands are slightly more conservative than on weekends. Both use the day's high temperature to pick the right outfit tier.</li>
+  <li><strong>Reminders:</strong> automatically added when conditions call for them -- a jacket reminder if the morning is cold or warms up a lot by afternoon, a sunscreen reminder if UV is high, and a rain jacket reminder if there is 40% or higher chance of rain.</li>
+  <li><strong>Temperatures:</strong> closes with the morning high (8 a.m. to noon) and the afternoon high (noon to 4 p.m.) in degrees Fahrenheit.</li>
+</ol>
+<p>All of this -- the outfit bands, the goofy lines for each weather type, the temperature thresholds for reminders, the school-vs-weekend distinction, and individual date overrides (like holidays) -- lives in <code>config/wardrobe.yml</code> and <code>config/day_overrides.yml</code>. They are plain text files you can edit freely without touching any code.</p>
+<p>The forecast data comes from Open-Meteo, a free global weather API with no account or API key required. The Pi fetches it fresh once a day at 4 a.m. and caches it so the call is instant. If the weather service is slow or unreachable when the child calls, the app says <em>"Hmm, I can't check the weather right now. Try me again in a little while!"</em> and hangs up.</p>
+<div class="note">You also get a Pushover notification showing exactly what the child heard, so you know both that they called and what the forecast said.</div>
+
+<h2 id="voice">6. The voice</h2>
+<p>Every word the child hears is spoken by a Deepgram Aura neural voice (currently "luna", model <code>aura-2-luna-en</code>). The audio is generated at normal speed by Deepgram, then slowed to 85% using ffmpeg's <code>atempo</code> filter -- pitch is preserved, just the pace is easier to follow for a young child.</p>
+
+<figure>
+  <img src="assets/voice-pipeline.svg" alt="Diagram of the voice pipeline: text prompt goes to Deepgram Aura, returns as mp3, ffmpeg slows it to 85% speed, the result is cached on the Pi, and Twilio plays it on the call. A fallback path bypasses Deepgram and goes straight to Twilio's built-in Say verb if Deepgram is unavailable.">
+  <figcaption>Each prompt is synthesized once and cached. During a call the Pi just points Twilio at the cached file, so there is no synthesis delay mid-call.</figcaption>
+</figure>
+
+<p>Every fixed prompt (the menu greeting, the voicemail prompt, the thank-you, the weather goodbye, and the fallback messages) is pre-generated at startup and cached on disk. During a live call, the app never waits on Deepgram -- it just plays the cached file. The weather forecast text is also synthesized and cached right after the 4 a.m. weather refresh.</p>
+<p>If Deepgram is unavailable or not configured, the app falls back to Twilio's plain built-in voice (<code>&lt;Say&gt;</code>) so the call always works. The child might notice a different voice, but they will not get silence or an error.</p>
+
+<h2 id="notifications">7. What you get notified about</h2>
+<p>You get a Pushover notification on your phone for both menu choices. They arrive right after the call finishes each step.</p>
 <table>
-  <thead><tr><th>When</th><th>Title</th><th>Message</th></tr></thead>
+  <thead><tr><th>When</th><th>Title</th><th>What the message contains</th></tr></thead>
   <tbody>
-    <tr><td>A voicemail is left</td><td>New voicemail</td><td>"[caller] left a [N] second message." Plus a "Listen in the inbox" link that opens the recording on your tailnet.</td></tr>
-    <tr><td>Someone checks the weather</td><td>Weather check</td><td>"Someone checked the weather from [caller]." A little heads-up that a kid is playing with the phone.</td></tr>
+    <tr>
+      <td>A message is left</td>
+      <td>New voicemail</td>
+      <td>The caller's number, the duration in seconds, and the transcript of what they said -- or a note if transcription was empty or failed. Includes a "Listen in the inbox" link to your tailnet inbox if you have a tailnet hostname configured.</td>
+    </tr>
+    <tr>
+      <td>Someone checks the weather</td>
+      <td>Weather check</td>
+      <td>The caller's number followed by the full text the child heard (the same forecast that was read aloud). A little heads-up that a kid is using the phone, plus the exact forecast so you know what they were told.</td>
+    </tr>
   </tbody>
 </table>
-<p>The notifications are best-effort by design. If Pushover is down, or you have not set it up yet, the recording is still saved safely and the caller's experience is unchanged. A failed notification never breaks a voicemail. It just means you missed the buzz, and the message is still waiting in the inbox.</p>
-<div class="note">Pushover notifications carry images, not audio, so the message itself is not attached. The "Listen" link is how you actually hear it, which brings us to the inbox.</div>
+<p>Both notifications are best-effort. If Pushover is down, or you have not set it up yet, the recording is still saved and the caller's experience is completely unchanged. A failed notification never breaks a call or a recording.</p>
 
-<h2 id="inbox">7. The inbox: listening back</h2>
-<p>The inbox is a small web page that lists every voicemail newest-first, each with a play button right there in the row. You open it at <code>http://&lt;your-pi-tailnet-name&gt;:8080/</code> from your phone or laptop.</p>
-<p>The important part is privacy. The same Pi answers the public phone traffic and serves this private inbox, but the inbox only works when you reach the Pi by its private tailnet name. If anyone tries to reach the inbox or a recording over the public phone address, they get a plain "not found". Your kids' messages never sit on a public web page.</p>
-
-<figure>
-  <div class="diagram">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 228" width="660" height="228" role="img" aria-label="Diagram titled: One app, two doors: who can reach what. Three request rows show how a Raspberry Pi Flask app routes traffic. Row 1: Twilio call reaches /call and /weather, scans amber then resolves green with a check badge labeled allowed: signature-checked. Row 2: Browser via Funnel reaches inbox slash, scans amber then resolves red with an X badge labeled blocked: 404, hidden. Row 3: Browser via tailnet reaches inbox slash, scans amber then resolves green with a check badge labeled allowed: 200, plays. The same inbox URL is blocked over the public Funnel but served over the tailnet. Animation shows each row's scan completing in sequence top to bottom, holding the finished state before looping.">
-  <style>
-    .bar { transform-box: fill-box; transform-origin: left center; }
-    .barR1 { animation: barR1 6s linear infinite; }
-    .barR2 { animation: barR2 6s linear infinite; }
-    .barR3 { animation: barR3 6s linear infinite; }
-    .bdgR1 { animation: bdgShow 6s linear infinite; animation-delay: 0s; }
-    .bdgR2 { animation: bdgShowR2 6s linear infinite; }
-    .bdgR3 { animation: bdgShowR3 6s linear infinite; }
-    @keyframes barR1 { 0% { transform: scaleX(0); fill: #e8932a; } 8.333% { transform: scaleX(1); fill: #e8932a; } 9.333%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes barR2 { 0%, 13.333% { transform: scaleX(0); fill: #e8932a; } 21.667% { transform: scaleX(1); fill: #e8932a; } 22.667%,100% { transform: scaleX(1); fill: #d64545; } }
-    @keyframes barR3 { 0%, 26.667% { transform: scaleX(0); fill: #e8932a; } 35% { transform: scaleX(1); fill: #e8932a; } 36%,100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes bdgShow { 0%, 9.333% { opacity: 0; } 11.333%,100% { opacity: 1; } }
-    @keyframes bdgShowR2 { 0%, 22.667% { opacity: 0; } 24.667%,100% { opacity: 1; } }
-    @keyframes bdgShowR3 { 0%, 36% { opacity: 0; } 38%,100% { opacity: 1; } }
-    @media (prefers-reduced-motion: reduce) {
-      .barR1, .barR2, .barR3 { animation: none; }
-      .bdgR1, .bdgR2, .bdgR3 { animation: none; opacity: 1; }
-      .barR1, .barR3 { transform: scaleX(1); fill: #1d9b54; }
-      .barR2         { transform: scaleX(1); fill: #d64545; }
-    }
-  </style>
-  <rect x="0" y="0" width="660" height="228" rx="10" fill="#ffffff"/>
-  <text x="16" y="26" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#3a4350">One app, two doors: who can reach what</text>
-  <g font-family="ui-sans-serif, system-ui, sans-serif">
-    <rect x="16" y="42" width="84" height="28" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-    <text x="58" y="60" text-anchor="middle" font-size="10" font-weight="600" fill="#1f5fc0">Twilio call</text>
-    <text x="112" y="61" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
-    <rect x="122" y="42" width="88" height="28" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-    <text x="166" y="57" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1f5fc0">/call, /weather</text>
-    <rect x="222" y="52" width="200" height="6" rx="3" fill="#d9dee6"/>
-    <rect class="bar barR1" x="222" y="52" width="200" height="6" rx="3" fill="#e8932a"/>
-    <g class="bdgR1" opacity="0">
-      <circle cx="436" cy="56" r="7" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
-      <polyline points="432.5,56 435,58.8 439.5,52.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
-    <text x="450" y="60" font-size="10" fill="#1d7a4d">allowed: signature-checked</text>
-    <rect x="16" y="96" width="84" height="28" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
-    <text x="58" y="107" text-anchor="middle" font-size="9.5" font-weight="600" fill="#5b6573">Browser via</text>
-    <text x="58" y="119" text-anchor="middle" font-size="9.5" font-weight="600" fill="#5b6573">Funnel</text>
-    <text x="112" y="115" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
-    <rect x="122" y="96" width="88" height="28" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
-    <text x="166" y="114" text-anchor="middle" font-size="10" font-weight="600" fill="#5b6573">inbox /</text>
-    <rect x="222" y="106" width="200" height="6" rx="3" fill="#d9dee6"/>
-    <rect class="bar barR2" x="222" y="106" width="200" height="6" rx="3" fill="#e8932a"/>
-    <g class="bdgR2" opacity="0">
-      <circle cx="436" cy="110" r="7" fill="#d64545" stroke="#fff" stroke-width="1.3"/>
-      <line x1="432.5" y1="106.5" x2="439.5" y2="113.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
-      <line x1="439.5" y1="106.5" x2="432.5" y2="113.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
-    </g>
-    <text x="450" y="114" font-size="10" fill="#b22222">blocked: 404, hidden</text>
-    <rect x="16" y="150" width="84" height="28" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-    <text x="58" y="161" text-anchor="middle" font-size="9.5" font-weight="600" fill="#0e7d70">Browser via</text>
-    <text x="58" y="173" text-anchor="middle" font-size="9.5" font-weight="600" fill="#0e7d70">tailnet</text>
-    <text x="112" y="169" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
-    <rect x="122" y="150" width="88" height="28" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-    <text x="166" y="168" text-anchor="middle" font-size="10" font-weight="600" fill="#0e7d70">inbox /</text>
-    <rect x="222" y="160" width="200" height="6" rx="3" fill="#d9dee6"/>
-    <rect class="bar barR3" x="222" y="160" width="200" height="6" rx="3" fill="#e8932a"/>
-    <g class="bdgR3" opacity="0">
-      <circle cx="436" cy="164" r="7" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
-      <polyline points="432.5,164 435,166.8 439.5,160.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
-    <text x="450" y="168" font-size="10" fill="#1d7a4d">allowed: 200, plays</text>
-  </g>
-  <text x="16" y="214" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" fill="#5b6573">The same inbox URL is blocked over the public Funnel but served over the tailnet. One gate, decided by which hostname the request arrived on.</text>
-</svg>
-  </div>
-  <figcaption>The privacy rule in one picture. The phone traffic is let in; the inbox is served only to your private network and hidden from the public side.</figcaption>
-</figure>
-
-<h2 id="storage">8. Where a voicemail goes</h2>
-<p>When a recording finishes, it takes a short journey and ends up living only on your Pi. The app downloads the audio from Twilio, saves it into a dated folder, writes a row into a small database so the inbox can list it, and then deletes the recording from Twilio. That last step matters: it keeps your costs near zero, and it means the Pi holds the only copy.</p>
+<h2 id="inbox">8. The inbox: listening back</h2>
+<p>The inbox is a small web page that lists every message newest-first, each with a play button right there in the row. You open it at <code>http://&lt;your-pi-tailnet-name&gt;:8080/</code> from your phone or laptop.</p>
+<p>The important part is privacy. The same Pi answers the public phone traffic and serves this private inbox, but the inbox only works when you reach the Pi by its private tailnet name. If anyone tries to reach the inbox or a recording over the public funnel address, they get a plain "not found" -- not a login page, not an error, just nothing. Your kids' messages never sit on a public web page.</p>
 
 <figure>
-  <div class="diagram">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 296" width="660" height="296" role="img" aria-label="Animated diagram: Where a voicemail goes. A recording travels left to right: Twilio holds the recording, then the Pi downloads the .wav file, then three outputs fan out in parallel: saved to disk, logged to SQLite, and deleted from Twilio making the Pi the only copy. The three outputs converge to a Pushover notification ping, then to the tailnet inbox where you tap to listen. Each step animates as an amber scan bar that turns green with a check badge on completion. Reads correctly when frozen.">
-  <style>
-    .bar { transform-box: fill-box; transform-origin: left center; }
-    .barTwilio { animation: vBarTwilio 8s linear infinite; }
-    .barPi     { animation: vBarPi     8s linear infinite; }
-    .barDisk   { animation: vBarDisk   8s linear infinite; }
-    .barDb     { animation: vBarDb     8s linear infinite; }
-    .barDel    { animation: vBarDel    8s linear infinite; }
-    .barPush   { animation: vBarPush   8s linear infinite; }
-    .barInbox  { animation: vBarInbox  8s linear infinite; }
-    .bdgTwilio { animation: vBdgTwilio 8s linear infinite; }
-    .bdgPi     { animation: vBdgPi     8s linear infinite; }
-    .bdgDisk   { animation: vBdgDisk   8s linear infinite; }
-    .bdgDb     { animation: vBdgDb     8s linear infinite; }
-    .bdgDel    { animation: vBdgDel    8s linear infinite; }
-    .bdgPush   { animation: vBdgPush   8s linear infinite; }
-    .bdgInbox  { animation: vBdgInbox  8s linear infinite; }
-    .dot { animation: vDot 8s linear infinite; }
-    @keyframes vBarTwilio { 0% { transform: scaleX(0); fill: #e8932a; } 6.25% { transform: scaleX(1); fill: #e8932a; } 7.25%, 100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes vBarPi { 0%, 9.375% { transform: scaleX(0); fill: #e8932a; } 15.625% { transform: scaleX(1); fill: #e8932a; } 16.625%, 100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes vBarDisk { 0%, 21.875% { transform: scaleX(0); fill: #e8932a; } 28.125% { transform: scaleX(1); fill: #e8932a; } 29.125%, 100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes vBarDb { 0%, 28.125% { transform: scaleX(0); fill: #e8932a; } 34.375% { transform: scaleX(1); fill: #e8932a; } 35.375%, 100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes vBarDel { 0%, 34.375% { transform: scaleX(0); fill: #e8932a; } 40.625% { transform: scaleX(1); fill: #e8932a; } 41.625%, 100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes vBarPush { 0%, 46.875% { transform: scaleX(0); fill: #e8932a; } 53.125% { transform: scaleX(1); fill: #e8932a; } 54.125%, 100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes vBarInbox { 0%, 59.375% { transform: scaleX(0); fill: #e8932a; } 65.625% { transform: scaleX(1); fill: #e8932a; } 66.625%, 100% { transform: scaleX(1); fill: #1d9b54; } }
-    @keyframes vBdgTwilio { 0%, 7.25%   { opacity: 0; } 9.25%,   100% { opacity: 1; } }
-    @keyframes vBdgPi     { 0%, 16.625% { opacity: 0; } 18.625%, 100% { opacity: 1; } }
-    @keyframes vBdgDisk   { 0%, 29.125% { opacity: 0; } 31.125%, 100% { opacity: 1; } }
-    @keyframes vBdgDb     { 0%, 35.375% { opacity: 0; } 37.375%, 100% { opacity: 1; } }
-    @keyframes vBdgDel    { 0%, 41.625% { opacity: 0; } 43.625%, 100% { opacity: 1; } }
-    @keyframes vBdgPush   { 0%, 54.125% { opacity: 0; } 56.125%, 100% { opacity: 1; } }
-    @keyframes vBdgInbox  { 0%, 66.625% { opacity: 0; } 68.625%, 100% { opacity: 1; } }
-    @keyframes vDot { 0% { opacity: 0; transform: translateX(0); } 0.5% { opacity: 1; transform: translateX(0); } 6.25% { opacity: 1; transform: translateX(82px); } 7.25% { opacity: 0; transform: translateX(82px); } 100% { opacity: 0; transform: translateX(82px); } }
-    @media (prefers-reduced-motion: reduce) {
-      .barTwilio, .barPi, .barDisk, .barDb, .barDel, .barPush, .barInbox { animation: none; }
-      .bar { transform: scaleX(1); fill: #1d9b54; }
-      .bdgTwilio, .bdgPi, .bdgDisk, .bdgDb, .bdgDel, .bdgPush, .bdgInbox { animation: none; opacity: 1; }
-      .dot { animation: none; opacity: 0; }
-    }
-  </style>
-  <rect x="0" y="0" width="660" height="296" rx="10" fill="#ffffff"/>
-  <text x="16" y="24" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#3a4350">Where a voicemail goes</text>
-  <rect x="16" y="76" width="106" height="34" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-  <text x="69" y="92" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" font-weight="700" fill="#1f5fc0">Twilio</text>
-  <text x="69" y="104" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="8.5" fill="#346DDB">holds the recording</text>
-  <rect x="16" y="116" width="106" height="5" rx="2.5" fill="#d9dee6"/>
-  <rect class="bar barTwilio" x="16" y="116" width="106" height="5" rx="2.5" fill="#e8932a"/>
-  <g class="bdgTwilio"><circle cx="118" cy="78" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="115,78 117,80.4 121,75.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <line x1="123" y1="93" x2="178" y2="93" stroke="#9aa3b0" stroke-width="1.5" stroke-dasharray="3 2"/>
-  <text x="150" y="89" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#9aa3b0">&#8594;</text>
-  <circle class="dot" cx="132" cy="93" r="4" fill="#346DDB" opacity="0"/>
-  <rect x="180" y="76" width="82" height="34" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-  <text x="221" y="92" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" font-weight="700" fill="#0e7d70">Pi downloads</text>
-  <text x="221" y="104" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="8.5" fill="#18a394">the .wav</text>
-  <rect x="180" y="116" width="82" height="5" rx="2.5" fill="#d9dee6"/>
-  <rect class="bar barPi" x="180" y="116" width="82" height="5" rx="2.5" fill="#e8932a"/>
-  <g class="bdgPi"><circle cx="258" cy="78" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="255,78 257,80.4 261,75.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <path d="M 264 93 L 290 93 L 290 59 L 320 59" stroke="#d9dee6" stroke-width="1.5" fill="none"/>
-  <path d="M 264 93 L 290 93 L 290 99 L 320 99" stroke="#d9dee6" stroke-width="1.5" fill="none"/>
-  <path d="M 264 93 L 290 93 L 290 139 L 320 139" stroke="#d9dee6" stroke-width="1.5" fill="none"/>
-  <rect x="320" y="44" width="198" height="30" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
-  <text x="419" y="58" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9" font-weight="700" fill="#1f5fc0">Saved to disk</text>
-  <text x="419" y="69" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="8" fill="#346DDB">data/recordings/.../*.wav</text>
-  <rect x="320" y="80" width="198" height="4" rx="2" fill="#d9dee6"/>
-  <rect class="bar barDisk" x="320" y="80" width="198" height="4" rx="2" fill="#e8932a"/>
-  <g class="bdgDisk"><circle cx="514" cy="46" r="6" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="511,46 513,48.4 517,43.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <rect x="320" y="84" width="198" height="30" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-  <text x="419" y="98" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9" font-weight="700" fill="#0e7d70">Logged</text>
-  <text x="419" y="109" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="8" fill="#18a394">data/ivr.db (SQLite)</text>
-  <rect x="320" y="120" width="198" height="4" rx="2" fill="#d9dee6"/>
-  <rect class="bar barDb" x="320" y="120" width="198" height="4" rx="2" fill="#e8932a"/>
-  <g class="bdgDb"><circle cx="514" cy="86" r="6" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="511,86 513,88.4 517,83.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <rect x="320" y="124" width="198" height="30" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
-  <text x="419" y="138" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9" font-weight="700" fill="#5b6573">Deleted from Twilio</text>
-  <text x="419" y="149" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="8" fill="#5b6573">only copy now on Pi</text>
-  <rect x="320" y="160" width="198" height="4" rx="2" fill="#d9dee6"/>
-  <rect class="bar barDel" x="320" y="160" width="198" height="4" rx="2" fill="#e8932a"/>
-  <g class="bdgDel"><circle cx="514" cy="126" r="6" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="511,126 513,128.4 517,123.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <path d="M 518 59 L 536 59 L 536 185 L 556 185" stroke="#d9dee6" stroke-width="1.5" fill="none"/>
-  <path d="M 518 99 L 536 99 L 536 185 L 556 185" stroke="#d9dee6" stroke-width="1.5" fill="none"/>
-  <path d="M 518 139 L 536 139 L 536 185 L 556 185" stroke="#d9dee6" stroke-width="1.5" fill="none"/>
-  <rect x="556" y="168" width="88" height="34" rx="6" fill="#fdf3e7" stroke="#e8932a" stroke-width="1.5"/>
-  <text x="600" y="184" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#c47a15">Pushover ping</text>
-  <text x="600" y="195" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="8" fill="#c47a15">New voicemail</text>
-  <rect x="556" y="208" width="88" height="4" rx="2" fill="#d9dee6"/>
-  <rect class="bar barPush" x="556" y="208" width="88" height="4" rx="2" fill="#e8932a"/>
-  <g class="bdgPush"><circle cx="640" cy="170" r="6" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="637,170 639,172.4 643,167.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <line x1="600" y1="203" x2="600" y2="230" stroke="#9aa3b0" stroke-width="1.5" stroke-dasharray="3 2"/>
-  <text x="600" y="234" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#9aa3b0">&#8595;</text>
-  <rect x="556" y="236" width="88" height="34" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
-  <text x="600" y="252" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#0e7d70">Tap to listen</text>
-  <text x="600" y="263" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="8" fill="#18a394">tailnet inbox plays it</text>
-  <rect x="556" y="276" width="88" height="4" rx="2" fill="#d9dee6"/>
-  <rect class="bar barInbox" x="556" y="276" width="88" height="4" rx="2" fill="#e8932a"/>
-  <g class="bdgInbox"><circle cx="640" cy="238" r="6" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/><polyline points="637,238 639,240.4 643,235.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <text x="16" y="289" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" fill="#5b6573">The recording is pulled to the Pi, logged, then deleted from Twilio, so the Pi holds the only copy. That is why backups matter.</text>
-</svg>
-  </div>
-  <figcaption>One recording, three filing steps, then a ping and a place to play it. Because the Pi ends up holding the only copy, a backup of its data folder is worth setting up.</figcaption>
+  <img src="assets/trust-zones.svg" alt="Diagram showing one Pi app with two doors: Twilio call traffic reaches the call and weather routes and is allowed after signature checking. A browser via the public Funnel trying to reach the inbox gets a 404 and is blocked. A browser via the tailnet reaching the inbox gets a 200 and plays the recording.">
+  <figcaption>The privacy rule in one picture. Call traffic is let in on the public side. The inbox is served only to your private network.</figcaption>
 </figure>
 
-<div class="warn">The Pi is the only copy. Recordings live in <code>data/recordings/</code> and the list lives in <code>data/ivr.db</code> on the Pi's disk. If that disk dies, the messages are gone. If these recordings matter to you, back up the <code>data/</code> folder somewhere.</div>
+<h2 id="storage">9. Where things live / privacy</h2>
+<p>When a recording finishes, it takes a short journey and ends up living only on your Pi. The app downloads the audio from Twilio, saves it into a dated folder under <code>data/recordings/</code>, writes a row into a small SQLite database (<code>data/ivr.db</code>) so the inbox can list it, and then deletes the recording from Twilio. That last step matters: it keeps your costs near zero, and it means the Pi holds the only copy.</p>
+<div class="warn">The Pi is the only copy. If the Pi's disk dies, the recordings are gone. If these messages matter to you, back up the <code>data/</code> folder to somewhere else.</div>
+<p>A few other things worth knowing about what the system does and does not store:</p>
+<ul>
+  <li>Your home location (latitude and longitude) lives only in the <code>.env</code> file on the Pi. It is never in the application code, never sent to Twilio, and never included in any notification.</li>
+  <li>Recordings are deleted from Twilio immediately after the Pi downloads them. Twilio holds the audio for only a few seconds.</li>
+  <li>The inbox is invisible to the public internet. There is no login page or access control to bypass -- the inbox simply does not exist from the public side.</li>
+</ul>
 
-<h2 id="setup">9. Setting it up (for the grown-up)</h2>
-<p>This part is for whoever runs the Pi, not the kids. The full step-by-step lives in <code>SETUP.md</code> in the project. The short version is four things:</p>
+<h2 id="setup">10. Setting it up (for the grown-up)</h2>
+<p>This part is for whoever runs the Pi. The full step-by-step lives in <code>SETUP.md</code> in the project. The short version is five things you need in place:</p>
 <ol>
-  <li><strong>Twilio:</strong> buy a phone number and point its voice webhook at your Pi's public address followed by <code>/call</code>.</li>
-  <li><strong>Fill in <code>.env</code>:</strong> your Twilio credentials, your public address, your Pi's private tailnet name, your Pushover keys, and your home weather location. Nothing about your location lives in the code; it all comes from this file.</li>
-  <li><strong>Tailscale:</strong> a public funnel so Twilio can reach the Pi, and the private tailnet name for the inbox.</li>
-  <li><strong>Run it as a service</strong> so it starts on boot and restarts if it crashes.</li>
+  <li><strong>Twilio:</strong> buy a phone number and point its voice webhook at your Pi's public Funnel address followed by <code>/call</code>.</li>
+  <li><strong>Deepgram:</strong> a free or paid Deepgram account for the voice and transcription. Without it the app falls back to Twilio's built-in voice and skips transcription, so it still works -- just without the warm voice and in-notification transcript.</li>
+  <li><strong>Pushover:</strong> optional but recommended. Create an app token and a user key; add them to <code>.env</code>. Without them, everything still records -- you just do not get a ping.</li>
+  <li><strong>Tailscale:</strong> a public Funnel so Twilio can reach the Pi, and the private tailnet hostname for the inbox.</li>
+  <li><strong>ffmpeg:</strong> installed on the Pi for the speech-rate adjustment. Without it the voice plays at normal speed instead of the slowed-down rate.</li>
 </ol>
 <div class="note">One setting catches people out: the service must run with <code>HOST=0.0.0.0</code> (the included service file sets this for you). Without it the app only listens to itself and the inbox will not open from your phone, even on the tailnet. The Host gate still keeps it private.</div>
-<h4>The settings you provide</h4>
+<h4>The settings you provide in <code>.env</code></h4>
 <table>
   <thead><tr><th>Setting</th><th>What it is for</th></tr></thead>
   <tbody>
-    <tr><td><code>TWILIO_*</code></td><td>Your Twilio account and phone number.</td></tr>
-    <tr><td><code>BASE_URL</code></td><td>The public funnel address Twilio calls.</td></tr>
-    <tr><td><code>TAILNET_HOSTNAME</code></td><td>The Pi's private name. The inbox only serves requests that arrive on this.</td></tr>
+    <tr><td><code>TWILIO_*</code></td><td>Your Twilio account credentials and phone number.</td></tr>
+    <tr><td><code>BASE_URL</code></td><td>The public Funnel address Twilio calls back to.</td></tr>
+    <tr><td><code>TAILNET_HOSTNAME</code></td><td>The Pi's private tailnet name. The inbox only serves requests that arrive on this hostname.</td></tr>
+    <tr><td><code>DEEPGRAM_API_KEY</code></td><td>Your Deepgram key for voice synthesis and transcription. Leave blank and the app falls back to Twilio's built-in voice with no transcription.</td></tr>
+    <tr><td><code>DEEPGRAM_TTS_MODEL</code></td><td>Which Aura voice to use. Defaults to <code>aura-2-andromeda-en</code>; the deployed voice is <code>aura-2-luna-en</code>.</td></tr>
+    <tr><td><code>SPEECH_RATE</code></td><td>Playback speed for synthesized audio. <code>1.0</code> is normal; <code>0.85</code> is the deployed value (slowed for a child). Requires ffmpeg when not <code>1.0</code>.</td></tr>
     <tr><td><code>PUSHOVER_TOKEN</code>, <code>PUSHOVER_USER</code></td><td>Where your notifications go. Leave blank and notifications are simply skipped.</td></tr>
-    <tr><td><code>WEATHER_LAT</code>, <code>WEATHER_LON</code>, <code>WEATHER_PLACE_NAME</code></td><td>Your home location and its spoken name for "press 2". Leave blank and press 2 politely says it cannot get the weather.</td></tr>
+    <tr><td><code>WEATHER_LAT</code>, <code>WEATHER_LON</code>, <code>WEATHER_PLACE_NAME</code></td><td>Your home coordinates and the spoken place name for the forecast. Leave blank and press 2 politely says it cannot get the weather.</td></tr>
   </tbody>
 </table>
 
-<h2 id="faq">10. Good to know</h2>
+<h2 id="faq">11. Good to know</h2>
 <dl class="defn">
-  <dt>Can other people on the internet hear my kid's voicemails?</dt>
-  <dd>No. The inbox and the recordings are only served to devices on your private tailnet. A request to the same address from the public side gets a plain "not found", not the audio.</dd>
+  <dt>Can other people on the internet hear my kid's messages?</dt>
+  <dd>No. The inbox and the recordings are only served to devices on your private tailnet. A request from the public side gets a plain "not found" -- not a login form, not the audio. There is nothing to bypass.</dd>
+
   <dt>What happens if the Pi is off or the internet is down?</dt>
-  <dd>Twilio cannot reach the app, so the caller will not get the menu. Nothing is lost; there is just no answer until the Pi is back. Once it is back, new calls work again.</dd>
-  <dt>What if I have not set up notifications or weather yet?</dt>
-  <dd>Both are optional and fail gracefully. With Pushover unset, voicemails are still recorded and saved, you just do not get a buzz. With no weather location, press 2 says it cannot get the weather and returns to the menu.</dd>
+  <dd>Twilio cannot reach the app, so the caller will not get the menu. Nothing is lost; there is just no answer until the Pi is back. Once it is back, new calls work normally.</dd>
+
   <dt>Does it cost anything?</dt>
-  <dd>Twilio charges a small monthly fee for the phone number plus per-minute charges for calls and recordings. The app deletes each recording from Twilio right after saving it, so storage cost stays near zero. The weather feed and Pushover are inexpensive or free.</dd>
-  <dt>Why a kid's phone and not just a smartphone app?</dt>
-  <dd>That is the whole point. The kid uses a simple corded phone with no screen and no apps. This system is what gives that one phone something fun and useful to do.</dd>
+  <dd>Twilio charges a small monthly fee for the phone number and per-minute charges for calls. The app deletes each recording from Twilio right after saving it, so storage costs stay near zero. Open-Meteo is free with no account required. Deepgram has a free tier. Pushover is a one-time small purchase.</dd>
+
+  <dt>Can I change the voice, the speed, or the jokes?</dt>
+  <dd>Yes to all three. The voice and speed are set by <code>DEEPGRAM_TTS_MODEL</code> and <code>SPEECH_RATE</code> in your <code>.env</code> file. The goofy weather lines and outfit advice live in <code>config/wardrobe.yml</code> -- it is a plain text file you can edit freely. After changing the voice or speed, restart the app so it re-synthesizes the cached prompts.</dd>
+
+  <dt>How does it know whether today is a school day?</dt>
+  <dd>Monday through Friday are school days by default; Saturday and Sunday are weekend days. You can override any individual date (for holidays, days off, or anything else) in <code>config/day_overrides.yml</code>. School-day and weekend outfit bands are slightly different -- the weekend bands are a little more casual.</dd>
+
   <dt>Is there a "press 3"?</dt>
-  <dd>Not in this version. The menu is press 1 (voicemail) and press 2 (weather). Anything else just repeats the menu. More options can be added later the same way press 2 was.</dd>
+  <dd>Not in this version. The menu is press 1 (message) and press 2 (weather). Anything else just repeats the menu. More options can be added the same way press 2 was.</dd>
+
   <dt>How long can a message be?</dt>
   <dd>Up to five minutes. The child can end it sooner by pressing pound or just hanging up.</dd>
+
+  <dt>What if transcription fails?</dt>
+  <dd>The recording is still saved. The Pushover notification will say "(Transcription failed.)" so you know, and you can still listen to the full audio in the inbox. The failure is always reported honestly.</dd>
+
+  <dt>What if the Pi is running but Deepgram is down?</dt>
+  <dd>The app falls back to Twilio's built-in text-to-speech for that call. The child will hear a slightly different, less warm voice, but the call will work and the recording will still be saved. Transcription of that message will say "(Transcription failed.)" in your notification.</dd>
+
+  <dt>When does the weather refresh?</dt>
+  <dd>At 4 a.m. every day (set in <code>config/wardrobe.yml</code> under <code>schedule</code>). It also refreshes once at startup when the app boots, so a freshly restarted Pi does not serve stale weather. If the child calls between midnight and 4 a.m., they will hear yesterday's cached forecast.</dd>
 </dl>
 
 <hr class="soft">

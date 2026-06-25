@@ -1,0 +1,294 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 298" width="680" height="298"
+  role="img"
+  aria-label="Animated call flow diagram. A shared start on the left shows two slate tiles: Dial the number, then Menu press 1 or 2. From the menu, two branches extend right. The top branch (blue) handles press 1: Record a message, Saved on the Pi, Transcribed, Text sent to your phone. The bottom branch (teal) handles press 2: Today's weather, Played twice, Bye bye! Hang up, Text sent to your phone. Each tile has an amber scan bar beneath it that fills left to right over 0.5 seconds, then turns green with a check badge. The shared tiles animate first, then the top pipeline left to right, then the bottom pipeline left to right, completing in about 11 seconds before looping. Frozen, all bars are green and all badges are visible.">
+  <style>
+    .bar { transform-box: fill-box; transform-origin: left center; }
+
+    /* Shared stage 0: Dial */
+    .bar0  { animation: cfBar0  11s linear infinite; }
+    .bdg0  { animation: cfBdg0  11s linear infinite; }
+    /* Shared stage 1: Menu */
+    .bar1  { animation: cfBar1  11s linear infinite; }
+    .bdg1  { animation: cfBdg1  11s linear infinite; }
+    /* Top stage 2: Press 1 */
+    .bar2  { animation: cfBar2  11s linear infinite; }
+    .bdg2  { animation: cfBdg2  11s linear infinite; }
+    /* Top stage 3: Record */
+    .bar3  { animation: cfBar3  11s linear infinite; }
+    .bdg3  { animation: cfBdg3  11s linear infinite; }
+    /* Top stage 4: Saved */
+    .bar4  { animation: cfBar4  11s linear infinite; }
+    .bdg4  { animation: cfBdg4  11s linear infinite; }
+    /* Top stage 5: Transcribed */
+    .bar5  { animation: cfBar5  11s linear infinite; }
+    .bdg5  { animation: cfBdg5  11s linear infinite; }
+    /* Top stage 6: Text sent (top) */
+    .bar6  { animation: cfBar6  11s linear infinite; }
+    .bdg6  { animation: cfBdg6  11s linear infinite; }
+    /* Bot stage 7: Press 2 */
+    .bar7  { animation: cfBar7  11s linear infinite; }
+    .bdg7  { animation: cfBdg7  11s linear infinite; }
+    /* Bot stage 8: Weather */
+    .bar8  { animation: cfBar8  11s linear infinite; }
+    .bdg8  { animation: cfBdg8  11s linear infinite; }
+    /* Bot stage 9: Played twice */
+    .bar9  { animation: cfBar9  11s linear infinite; }
+    .bdg9  { animation: cfBdg9  11s linear infinite; }
+    /* Bot stage 10: Bye bye */
+    .bar10 { animation: cfBar10 11s linear infinite; }
+    .bdg10 { animation: cfBdg10 11s linear infinite; }
+    /* Bot stage 11: Text sent (bot) */
+    .bar11 { animation: cfBar11 11s linear infinite; }
+    .bdg11 { animation: cfBdg11 11s linear infinite; }
+
+    /*
+      Timing (11s loop). scan=0.5s=4.545%, pause=0.3s=2.727%
+      Stage 0:  0%      -> 4.545%
+      Stage 1:  7.273%  -> 11.818%
+      Stage 2:  14.545% -> 19.091%
+      Stage 3:  21.818% -> 26.364%
+      Stage 4:  29.091% -> 33.636%
+      Stage 5:  36.364% -> 40.909%
+      Stage 6:  43.636% -> 48.182%
+      Stage 7:  50.909% -> 55.455%
+      Stage 8:  58.182% -> 62.727%
+      Stage 9:  65.455% -> 70.000%
+      Stage 10: 72.727% -> 77.273%
+      Stage 11: 80.000% -> 84.545%
+      hold:     84.545% -> 100%
+    */
+    @keyframes cfBar0  { 0%           { transform:scaleX(0);fill:#e8932a; } 4.545%         { transform:scaleX(1);fill:#e8932a; } 5.545%,100%  { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg0  { 0%,5.545%    { opacity:0; } 7.545%,100%  { opacity:1; } }
+
+    @keyframes cfBar1  { 0%,7.273%    { transform:scaleX(0);fill:#e8932a; } 11.818%        { transform:scaleX(1);fill:#e8932a; } 12.818%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg1  { 0%,12.818%   { opacity:0; } 14.818%,100% { opacity:1; } }
+
+    @keyframes cfBar2  { 0%,14.545%   { transform:scaleX(0);fill:#e8932a; } 19.091%        { transform:scaleX(1);fill:#e8932a; } 20.091%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg2  { 0%,20.091%   { opacity:0; } 22.091%,100% { opacity:1; } }
+
+    @keyframes cfBar3  { 0%,21.818%   { transform:scaleX(0);fill:#e8932a; } 26.364%        { transform:scaleX(1);fill:#e8932a; } 27.364%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg3  { 0%,27.364%   { opacity:0; } 29.364%,100% { opacity:1; } }
+
+    @keyframes cfBar4  { 0%,29.091%   { transform:scaleX(0);fill:#e8932a; } 33.636%        { transform:scaleX(1);fill:#e8932a; } 34.636%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg4  { 0%,34.636%   { opacity:0; } 36.636%,100% { opacity:1; } }
+
+    @keyframes cfBar5  { 0%,36.364%   { transform:scaleX(0);fill:#e8932a; } 40.909%        { transform:scaleX(1);fill:#e8932a; } 41.909%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg5  { 0%,41.909%   { opacity:0; } 43.909%,100% { opacity:1; } }
+
+    @keyframes cfBar6  { 0%,43.636%   { transform:scaleX(0);fill:#e8932a; } 48.182%        { transform:scaleX(1);fill:#e8932a; } 49.182%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg6  { 0%,49.182%   { opacity:0; } 51.182%,100% { opacity:1; } }
+
+    @keyframes cfBar7  { 0%,50.909%   { transform:scaleX(0);fill:#e8932a; } 55.455%        { transform:scaleX(1);fill:#e8932a; } 56.455%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg7  { 0%,56.455%   { opacity:0; } 58.455%,100% { opacity:1; } }
+
+    @keyframes cfBar8  { 0%,58.182%   { transform:scaleX(0);fill:#e8932a; } 62.727%        { transform:scaleX(1);fill:#e8932a; } 63.727%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg8  { 0%,63.727%   { opacity:0; } 65.727%,100% { opacity:1; } }
+
+    @keyframes cfBar9  { 0%,65.455%   { transform:scaleX(0);fill:#e8932a; } 70.000%        { transform:scaleX(1);fill:#e8932a; } 71.000%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg9  { 0%,71.000%   { opacity:0; } 73.000%,100% { opacity:1; } }
+
+    @keyframes cfBar10 { 0%,72.727%   { transform:scaleX(0);fill:#e8932a; } 77.273%        { transform:scaleX(1);fill:#e8932a; } 78.273%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg10 { 0%,78.273%   { opacity:0; } 80.273%,100% { opacity:1; } }
+
+    @keyframes cfBar11 { 0%,80.000%   { transform:scaleX(0);fill:#e8932a; } 84.545%        { transform:scaleX(1);fill:#e8932a; } 85.545%,100% { transform:scaleX(1);fill:#1d9b54; } }
+    @keyframes cfBdg11 { 0%,85.545%   { opacity:0; } 87.545%,100% { opacity:1; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bar0,.bar1,.bar2,.bar3,.bar4,.bar5,.bar6,
+      .bar7,.bar8,.bar9,.bar10,.bar11 { animation:none; }
+      .bar { transform:scaleX(1); fill:#1d9b54; }
+      .bdg0,.bdg1,.bdg2,.bdg3,.bdg4,.bdg5,.bdg6,
+      .bdg7,.bdg8,.bdg9,.bdg10,.bdg11 { animation:none; opacity:1; }
+    }
+  </style>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="680" height="298" rx="10" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="16" y="22" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#3a4350">What happens when you call</text>
+
+  <g font-family="ui-sans-serif, system-ui, sans-serif">
+
+    <!-- ===== SHARED SECTION (slate) ===== -->
+    <!-- Shared tiles centered vertically at y-center=145, rect h=46, bar h=5 -->
+    <!-- Shared tile 0: Dial the number, x=16, w=86, center-x=59 -->
+    <rect x="16"  y="122" width="86" height="46" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
+    <text x="59"  y="141" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">Dial the</text>
+    <text x="59"  y="154" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">number</text>
+    <rect x="16"  y="172" width="86" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar0" x="16" y="172" width="86" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg0">
+      <circle cx="96" cy="124" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="93,124 95,126.4 99,121.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow shared 0 to 1 -->
+    <text x="107" y="149" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Shared tile 1: Menu: press 1 or 2, x=116, w=90, center-x=161 -->
+    <rect x="116" y="122" width="90" height="46" rx="6" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
+    <text x="161" y="141" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">Menu: press</text>
+    <text x="161" y="154" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">1 or 2</text>
+    <rect x="116" y="172" width="90" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar1" x="116" y="172" width="90" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg1">
+      <circle cx="200" cy="124" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="197,124 199,126.4 203,121.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Branch lines from end of shared (x=206) to top (y=65) and bottom (y=215) -->
+    <!-- Vertical spine at x=212 from y=65 to y=215 -->
+    <line x1="212" y1="65" x2="212" y2="215" stroke="#d9dee6" stroke-width="1.5"/>
+    <!-- Horizontal branch to top row x=222 -->
+    <line x1="212" y1="65"  x2="222" y2="65"  stroke="#d9dee6" stroke-width="1.5"/>
+    <!-- Horizontal branch to bottom row x=222 -->
+    <line x1="212" y1="215" x2="222" y2="215" stroke="#d9dee6" stroke-width="1.5"/>
+
+    <!-- "Press 1" label above top branch -->
+    <text x="215" y="47" font-size="9" fill="#346DDB" font-weight="600">Press 1</text>
+    <!-- "Press 2" label below bottom branch -->
+    <text x="215" y="237" font-size="9" fill="#18a394" font-weight="600">Press 2</text>
+
+    <!-- ===== TOP PIPELINE (blue, press 1) ===== -->
+    <!-- 5 tiles: x=222,296,370,444,518 each w=68, h=46, center-y=65 -->
+
+    <!-- Top tile 2: Press 1, x=222, w=62 -->
+    <rect x="222" y="42" width="62" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="253" y="61"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Press 1</text>
+    <rect x="222" y="92"  width="62" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar2" x="222" y="92" width="62" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg2">
+      <circle cx="278" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="275,44 277,46.4 281,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="291" y="69" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Top tile 3: Record a message, x=300, w=74 -->
+    <rect x="300" y="42" width="74" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="337" y="59"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Record a</text>
+    <text x="337" y="72"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">message</text>
+    <rect x="300" y="92"  width="74" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar3" x="300" y="92" width="74" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg3">
+      <circle cx="368" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="365,44 367,46.4 371,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="381" y="69" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Top tile 4: Saved on the Pi, x=390, w=74 -->
+    <rect x="390" y="42" width="74" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="427" y="59"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Saved on</text>
+    <text x="427" y="72"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">the Pi</text>
+    <rect x="390" y="92"  width="74" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar4" x="390" y="92" width="74" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg4">
+      <circle cx="458" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="455,44 457,46.4 461,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="471" y="69" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Top tile 5: Transcribed, x=480, w=74 -->
+    <rect x="480" y="42" width="74" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="517" y="61"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Transcribed</text>
+    <rect x="480" y="92"  width="74" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar5" x="480" y="92" width="74" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg5">
+      <circle cx="548" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="545,44 547,46.4 551,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="561" y="69" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Top tile 6: Text sent to your phone, x=570, w=88 -->
+    <rect x="570" y="42" width="88" height="46" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="614" y="59"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Text sent to</text>
+    <text x="614" y="72"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">your phone</text>
+    <rect x="570" y="92"  width="88" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar6" x="570" y="92" width="88" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg6">
+      <circle cx="652" cy="44" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="649,44 651,46.4 655,41.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- ===== BOTTOM PIPELINE (teal, press 2) ===== -->
+    <!-- 5 tiles: same x positions, center-y=215 -->
+
+    <!-- Bot tile 7: Press 2, x=222, w=62 -->
+    <rect x="222" y="192" width="62" height="46" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="253" y="211" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Press 2</text>
+    <rect x="222" y="242" width="62" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar7" x="222" y="242" width="62" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg7">
+      <circle cx="278" cy="194" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="275,194 277,196.4 281,191.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="291" y="219" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Bot tile 8: Today's weather, x=300, w=74 -->
+    <rect x="300" y="192" width="74" height="46" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="337" y="209" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Today's</text>
+    <text x="337" y="222" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">weather</text>
+    <rect x="300" y="242" width="74" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar8" x="300" y="242" width="74" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg8">
+      <circle cx="368" cy="194" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="365,194 367,196.4 371,191.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="381" y="219" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Bot tile 9: Played twice, x=390, w=74 -->
+    <rect x="390" y="192" width="74" height="46" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="427" y="211" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Played</text>
+    <text x="427" y="224" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">twice</text>
+    <rect x="390" y="242" width="74" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar9" x="390" y="242" width="74" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg9">
+      <circle cx="458" cy="194" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="455,194 457,196.4 461,191.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="471" y="219" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Bot tile 10: Bye bye! Hang up, x=480, w=74 -->
+    <rect x="480" y="192" width="74" height="46" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="517" y="209" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Bye bye!</text>
+    <text x="517" y="222" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Hang up</text>
+    <rect x="480" y="242" width="74" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar10" x="480" y="242" width="74" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg10">
+      <circle cx="548" cy="194" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="545,194 547,196.4 551,191.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Arrow -->
+    <text x="561" y="219" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Bot tile 11: Text sent to your phone, x=570, w=88 -->
+    <rect x="570" y="192" width="88" height="46" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="614" y="209" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Text sent to</text>
+    <text x="614" y="222" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">your phone</text>
+    <rect x="570" y="242" width="88" height="5" rx="2.5" fill="#d9dee6"/>
+    <rect class="bar bar11" x="570" y="242" width="88" height="5" rx="2.5" fill="#e8932a"/>
+    <g class="bdg11">
+      <circle cx="652" cy="194" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="649,194 651,196.4 655,191.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Caption -->
+    <text x="16" y="282" font-size="11.5" fill="#5b6573">Press 1 leaves a message that gets transcribed to your phone. Press 2 reads the weather, twice, then says goodbye. Either way you get a text of what happened.</text>
+
+  </g>
+</svg>
