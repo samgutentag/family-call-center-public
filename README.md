@@ -1,10 +1,14 @@
 # Family Call Center (Public)
 > **Note:** This repository is unmaintained, unsupported, and shared as-is as untested example code.
-This is a voicemail-only Flask + Twilio app.
-When a caller reaches `/call`, they hear one option:
+This is a small Flask + Twilio phone app for a kid's landline.
+When a caller reaches `/call`, they hear a short menu:
 - Press **1** to leave a voicemail.
+- Press **2** to hear the local weather read aloud.
 
-The app records voicemail audio, stores it under `data/recordings/YYYY/MM/DD/`, logs metadata in `data/ivr.db`, and then deletes the recording from Twilio.
+Voicemail audio is stored under `data/recordings/YYYY/MM/DD/`, logged in `data/ivr.db`, then deleted from Twilio so the Pi holds the only copy. A Pushover notification fires on a new voicemail (and on a weather check). Recordings are browsable from a small web inbox that is gated to your Tailscale tailnet and hidden from the public Funnel that Twilio uses.
+
+## User guide
+A read-cold, illustrated guide lives at [`docs/user-guide.html`](docs/user-guide.html) (open it in a browser). Setup steps are in [`SETUP.md`](SETUP.md).
 
 ## Why this repo exists
 This repo is a lightweight public wrapper around my personal project so people can see the rough implementation.

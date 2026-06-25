@@ -37,3 +37,17 @@ def log_recording(created_at, caller_id, duration, filename, file_size, twilio_s
             (created_at, caller_id, duration, filename, file_size, twilio_sid),
         )
         conn.commit()
+
+
+def list_recordings(limit=100):
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, created_at, caller_id, duration, filename, file_size
+            FROM recordings
+            ORDER BY datetime(created_at) DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        return [dict(row) for row in rows]

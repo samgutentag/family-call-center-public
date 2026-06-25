@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voicemail Inbox</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 700px; }
+    h1 { font-size: 1.4rem; }
+    .vm { border-bottom: 1px solid #ddd; padding: 0.75rem 0; }
+    .meta { color: #555; font-size: 0.9rem; }
+    audio { width: 100%; margin-top: 0.5rem; }
+    .empty { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>Voicemail Inbox</h1>
+  {% if not recordings %}
+    <p class="empty">No voicemails yet.</p>
+  {% endif %}
+  {% for r in recordings %}
+    <div class="vm" id="rec-{{ r.id }}">
+      <div class="meta">
+        {{ r.created_at }} &middot; from {{ r.caller_id }} &middot; {{ r.duration }}s
+      </div>
+      <audio controls preload="none" src="/recordings/{{ r.filename }}"></audio>
+    </div>
+  {% endfor %}
+</body>
+</html>

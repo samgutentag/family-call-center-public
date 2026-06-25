@@ -22,3 +22,16 @@ class Config:
     RECORDINGS_DIR = os.path.join(DATA_DIR, "recordings")
 
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
+
+    TWILIO_VALIDATION_ENABLED = (
+        os.getenv("TWILIO_VALIDATION_ENABLED", "true").lower() == "true"
+    )
+
+    PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN", "")
+    PUSHOVER_USER = os.getenv("PUSHOVER_USER", "")
+
+    TAILNET_HOSTNAME = os.getenv("TAILNET_HOSTNAME", "")
+
+    WEATHER_LAT = os.getenv("WEATHER_LAT", "")
+    WEATHER_LON = os.getenv("WEATHER_LON", "")
+    WEATHER_PLACE_NAME = os.getenv("WEATHER_PLACE_NAME", "")

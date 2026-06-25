@@ -17,6 +17,9 @@ def validate_twilio_request(f):
     """
     @wraps(f)
     def decorated(*args, **kwargs):
+        if not Config.TWILIO_VALIDATION_ENABLED:
+            return f(*args, **kwargs)
+
         # Build the public URL Twilio signed against
         public_url = Config.BASE_URL + request.full_path.rstrip("?")
         post_data = request.form.to_dict()

@@ -34,8 +34,10 @@ def route():
 
         if digit == "1":
             vr.redirect(f"{Config.BASE_URL}/voicemail")
+        elif digit == "2":
+            vr.redirect(f"{Config.BASE_URL}/weather")
         else:
-            vr.say("I didn't catch that. Press 1 to leave a voicemail.")
+            vr.say("I didn't catch that. Press 1 for a voicemail, or 2 for weather.")
             vr.redirect(f"{Config.BASE_URL}/call")
 
         return twiml_response(vr)

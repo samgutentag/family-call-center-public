@@ -24,7 +24,9 @@ def main_menu_twiml():
     gather = vr.gather(
         num_digits=1, action=f"{Config.BASE_URL}/call/route", method="POST", timeout=10
     )
-    gather.say("Welcome. Press 1 to leave a voicemail.")
+    gather.say(
+        "Welcome. Press 1 to leave a voicemail, or press 2 for the weather."
+    )
     # If no input, repeat the menu
     vr.redirect(f"{Config.BASE_URL}/call")
     return twiml_response(vr)

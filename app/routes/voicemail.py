@@ -1,12 +1,14 @@
 import logging
 import os
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 import requests as http_requests
 from flask import Blueprint, request
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 
+from app.services import pushover
 from app.utils.db import init_db, log_recording
 from app.utils.twilio_validator import validate_twilio_request
 from app.utils.twiml import error_response, twiml_response
@@ -23,6 +25,10 @@ init_db()
 def voicemail():
     """Prompt the caller to leave a message and start recording."""
     try:
+        # Twilio's recording-status callback omits the caller, so thread it
+        # through on the callback URL to log who actually left the message.
+        caller = request.form.get("From", "unknown")
+        callback_url = f"{Config.BASE_URL}/voicemail/callback?caller={quote(caller)}"
         vr = VoiceResponse()
         vr.say(
             "Please leave your voicemail after the beep. "
@@ -30,7 +36,7 @@ def voicemail():
         )
         vr.record(
             action=f"{Config.BASE_URL}/voicemail/done",
-            recording_status_callback=f"{Config.BASE_URL}/voicemail/callback",
+            recording_status_callback=callback_url,
             recording_status_callback_method="POST",
             finish_on_key="#",
             max_length=300,
@@ -67,7 +73,8 @@ def voicemail_callback():
         recording_sid = request.form.get("RecordingSid", "")
         recording_url = request.form.get("RecordingUrl", "")
         duration = request.form.get("RecordingDuration", 0)
-        caller_id = request.form.get("From", "unknown")
+        # Prefer the caller threaded onto the callback URL; the form has no From.
+        caller_id = request.args.get("caller") or request.form.get("From", "unknown")
 
         logger.info(
             "Recording complete: sid=%s duration=%s from=%s",
@@ -111,6 +118,20 @@ def voicemail_callback():
 
         # Delete from Twilio to avoid storage costs
         _delete_from_twilio(recording_sid)
+
+        try:
+            listen_url = None
+            if Config.TAILNET_HOSTNAME:
+                port = os.getenv("PORT", "8080")
+                listen_url = f"http://{Config.TAILNET_HOSTNAME}:{port}/"
+            pushover.send_notification(
+                title="New voicemail",
+                message=f"{caller_id} left a {int(duration)} second message.",
+                url=listen_url,
+                url_title="Listen in the inbox" if listen_url else None,
+            )
+        except Exception:
+            logger.warning("Pushover voicemail notify failed", exc_info=True)
 
         return ("", 204)
     except Exception:

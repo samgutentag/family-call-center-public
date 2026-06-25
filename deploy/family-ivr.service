@@ -1,0 +1,20 @@
+[Unit]
+Description=Family Call Center IVR
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=REPLACE_WITH_PI_USER
+WorkingDirectory=/home/REPLACE_WITH_PI_USER/family-call-center-public
+ExecStart=/home/REPLACE_WITH_PI_USER/family-call-center-public/.venv/bin/python run.py
+Restart=on-failure
+RestartSec=5
+Environment=PORT=8080
+# Bind all interfaces so the tailnet inbox is reachable from other devices.
+# The inbox is still protected: require_tailnet 404s any request whose Host
+# header doesn't match TAILNET_HOSTNAME, and Twilio routes are signature-checked.
+Environment=HOST=0.0.0.0
+
+[Install]
+WantedBy=multi-user.target
