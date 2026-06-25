@@ -3,7 +3,7 @@ import logging
 from flask import Blueprint, request
 from twilio.twiml.voice_response import VoiceResponse
 
-from app.services import pushover, weather_gov
+from app.services import pushover, scheduler, weather_cache
 from app.utils.twilio_validator import validate_twilio_request
 from app.utils.twiml import error_response, twiml_response
 from config import Config
@@ -15,7 +15,7 @@ weather_bp = Blueprint("weather", __name__)
 @weather_bp.post("/weather")
 @validate_twilio_request
 def weather():
-    """Notify that the weather was checked, then speak the forecast."""
+    """Notify the weather was checked, then speak the cached instruction."""
     caller = request.form.get("From", "unknown")
     try:
         pushover.send_notification(
@@ -27,9 +27,15 @@ def weather():
 
     try:
         vr = VoiceResponse()
-        forecast = weather_gov.get_forecast()
-        if forecast:
-            vr.say(forecast)
+        row = weather_cache.read()
+        if not (row and weather_cache.is_fresh(row)):
+            try:
+                scheduler.refresh()
+                row = weather_cache.read()
+            except Exception:
+                logger.exception("Live weather refresh failed")
+        if row:
+            vr.say(row["instruction"])
         else:
             vr.say("Sorry, I can't get the weather right now. Please try again later.")
         vr.redirect(f"{Config.BASE_URL}/call")

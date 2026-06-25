@@ -30,4 +30,8 @@ def create_app():
         uptime_seconds = int(time.time() - START_TIME)
         return jsonify({"status": "ok", "uptime_seconds": uptime_seconds})
 
+    if Config.SCHEDULER_ENABLED:
+        from app.services import scheduler
+        scheduler.start(app)
+
     return app

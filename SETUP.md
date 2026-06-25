@@ -120,3 +120,18 @@ after copying: `DATA_DIR` must be an absolute path, `FLASK_SECRET_KEY` a real
 random string (`python3 -c "import secrets; print(secrets.token_hex(24))"`).
 Values with spaces (e.g. `WEATHER_PLACE_NAME`) can be quoted; `python-dotenv`
 strips the quotes.
+
+## Weather and wardrobe rules
+
+Press 2 reads a pre-computed clothing instruction, refreshed on a schedule.
+
+- Edit `config/wardrobe.yml` to tune the outfit bands (school vs weekend),
+  the UV / morning-jacket / rain thresholds, the morning/afternoon hour
+  windows, and the `schedule` (an array of cron expressions, e.g.
+  `"0 4 * * *"` for 4am). Ships with one 4am refresh; add more lines for more.
+- Edit `config/day_overrides.yml` to mark school-calendar exceptions, e.g.
+  `2026-09-07: weekend` for a holiday.
+- Restart the service to pick up schedule changes
+  (`sudo systemctl restart family-ivr`).
+- The forecast comes from Open-Meteo (free, no API key); set `WEATHER_LAT`
+  and `WEATHER_LON` in `.env`.

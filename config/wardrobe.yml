@@ -1,0 +1,27 @@
+# Edit freely. Outfit bands, thresholds, time windows, and refresh schedule.
+schedule:
+  - "0 4 * * *"            # 4:00am daily
+
+windows:
+  morning: [8, 12]         # 8am to noon (local hours, end exclusive)
+  afternoon: [12, 16]      # noon to 4pm
+
+thresholds:
+  uv: 5                    # max UV strictly above this -> sunscreen
+  morning_jacket_below: 55 # morning high below this -> jacket
+  morning_jacket_delta: 12 # afternoon minus morning at/above this -> jacket
+  rain_probability: 40     # rain chance % at/above this -> rain jacket
+
+rules:
+  school:
+    bands:
+      - { up_to: 52,  outfit: "wear pants, a long sleeve, and a jacket" }
+      - { up_to: 62,  outfit: "wear pants and a long sleeve" }
+      - { up_to: 70,  outfit: "wear your skort and a long sleeve" }
+      - { up_to: 999, outfit: "wear your skort and a t-shirt" }
+  weekend:
+    bands:
+      - { up_to: 52,  outfit: "wear pants, a long sleeve, and a jacket" }
+      - { up_to: 62,  outfit: "wear pants and a long sleeve" }
+      - { up_to: 70,  outfit: "wear pants and a t-shirt" }
+      - { up_to: 999, outfit: "wear shorts and a t-shirt" }

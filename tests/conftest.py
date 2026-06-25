@@ -7,6 +7,7 @@ os.environ.setdefault("TWILIO_AUTH_TOKEN", "test-token")
 os.environ.setdefault("TWILIO_PHONE_NUMBER", "+15550000000")
 os.environ.setdefault("BASE_URL", "https://funnel.example.ts.net")
 os.environ.setdefault("TWILIO_VALIDATION_ENABLED", "false")
+os.environ.setdefault("SCHEDULER_ENABLED", "false")
 os.environ.setdefault("TAILNET_HOSTNAME", "pi.tailtest.ts.net")
 os.environ.setdefault("DATA_DIR", tempfile.mkdtemp(prefix="ivr-test-"))
 

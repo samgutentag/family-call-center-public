@@ -35,3 +35,11 @@ class Config:
     WEATHER_LAT = os.getenv("WEATHER_LAT", "")
     WEATHER_LON = os.getenv("WEATHER_LON", "")
     WEATHER_PLACE_NAME = os.getenv("WEATHER_PLACE_NAME", "")
+
+    WARDROBE_CONFIG = os.getenv(
+        "WARDROBE_CONFIG", os.path.join(os.path.dirname(__file__), "config", "wardrobe.yml")
+    )
+    DAY_OVERRIDES = os.getenv(
+        "DAY_OVERRIDES", os.path.join(os.path.dirname(__file__), "config", "day_overrides.yml")
+    )
+    SCHEDULER_ENABLED = os.getenv("SCHEDULER_ENABLED", "true").lower() == "true"
