@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 322" width="660" height="322" role="img" aria-label="Diagram titled: After a reboot, the Pi brings the phone back by itself. A vertical recovery sequence on a Raspberry Pi named devbox-pi-1. A power-on trigger tile lights at the top. Then three systemd services recover in order, each with an amber scan bar that fills and flips green with a check badge: tailscaled starts, cloudflared reconnects the tunnel, and family-ivr serves on port 8080. A final resolved tile lights green reading the line answers, no hands. The animation completes the steps top to bottom and holds the all-green finished state before looping. Frozen, every step reads as done.">
+  <!--
+    TIMING (6s loop, one scan = 0.5s = 8.333%):
+      Row 1 power-on tile glows in   0% to 4%, then holds lit
+      Row 2 tailscaled scans         0% to  8.333%   then green + badge
+      Row 3 cloudflared scans       13.333% to 21.667%  then green + badge
+      Row 4 family-ivr scans        26.667% to 35%      then green + badge
+      Row 5 resolved tile lights     38%, holds to 100%
+      finished all-green frame HOLDS 38% to 100% (about 3.7s linger)
+    (Note: write "to", not a double hyphen, which is illegal inside an XML comment.)
+  -->
+  <style>
+    .bar { transform-box: fill-box; transform-origin: left center; }
+    .barS1 { animation: barS1 6s linear infinite; }
+    .barS2 { animation: barS2 6s linear infinite; }
+    .barS3 { animation: barS3 6s linear infinite; }
+    .bdgS1 { animation: bdgS1 6s linear infinite; }
+    .bdgS2 { animation: bdgS2 6s linear infinite; }
+    .bdgS3 { animation: bdgS3 6s linear infinite; }
+    .trigger { animation: triggerGlow 6s linear infinite; }
+    .resolved { animation: resolvedGlow 6s linear infinite; }
+    @keyframes barS1 { 0% { transform: scaleX(0); fill: #e8932a; } 8.333% { transform: scaleX(1); fill: #e8932a; } 9.333%,100% { transform: scaleX(1); fill: #1d9b54; } }
+    @keyframes barS2 { 0%,13.333% { transform: scaleX(0); fill: #e8932a; } 21.667% { transform: scaleX(1); fill: #e8932a; } 22.667%,100% { transform: scaleX(1); fill: #1d9b54; } }
+    @keyframes barS3 { 0%,26.667% { transform: scaleX(0); fill: #e8932a; } 35% { transform: scaleX(1); fill: #e8932a; } 36%,100% { transform: scaleX(1); fill: #1d9b54; } }
+    @keyframes bdgS1 { 0%,9.333% { opacity: 0; } 11.333%,100% { opacity: 1; } }
+    @keyframes bdgS2 { 0%,22.667% { opacity: 0; } 24.667%,100% { opacity: 1; } }
+    @keyframes bdgS3 { 0%,36% { opacity: 0; } 38%,100% { opacity: 1; } }
+    @keyframes triggerGlow { 0% { opacity: 0.35; } 4%,100% { opacity: 1; } }
+    @keyframes resolvedGlow { 0%,36% { opacity: 0.25; } 40%,100% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      .barS1, .barS2, .barS3, .bdgS1, .bdgS2, .bdgS3, .trigger, .resolved { animation: none; }
+      .bar { transform: scaleX(1); fill: #1d9b54; }
+      .bdgS1, .bdgS2, .bdgS3, .trigger, .resolved { opacity: 1; }
+    }
+  </style>
+
+  <rect x="0" y="0" width="660" height="322" rx="10" fill="#ffffff"/>
+  <text x="16" y="26" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#3a4350">After a reboot, the Pi brings the phone back by itself</text>
+  <text x="16" y="44" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10.5" fill="#9aa3b0">host: devbox-pi-1, all services enabled under systemd</text>
+
+  <g font-family="ui-sans-serif, system-ui, sans-serif">
+    <!-- Row 1: Power on / reboot trigger tile -->
+    <g class="trigger">
+      <rect x="16" y="56" width="160" height="34" rx="8" fill="#eef1f5" stroke="#9aa3b0" stroke-width="1.5"/>
+      <text x="96" y="77" text-anchor="middle" font-size="11" font-weight="700" fill="#5b6573">Power on / reboot</text>
+    </g>
+    <text x="92" y="102" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8595;</text>
+
+    <!-- Row 2: systemd starts tailscaled (blue) -->
+    <rect x="16" y="110" width="200" height="34" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="30" y="126" font-size="10.5" font-weight="700" fill="#1f5fc0">systemd starts tailscaled</text>
+    <text x="30" y="139" font-size="9" fill="#1f5fc0">Tailscale joins the tailnet</text>
+    <rect x="232" y="124" width="220" height="6" rx="3" fill="#d9dee6"/>
+    <rect class="bar barS1" x="232" y="124" width="220" height="6" rx="3" fill="#e8932a"/>
+    <g class="bdgS1" opacity="0">
+      <circle cx="466" cy="127" r="7" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="462.5,127 465,129.8 469.5,123.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="482" y="131" font-size="10" fill="#1d7a4d">active</text>
+
+    <!-- Row 3: cloudflared reconnects the tunnel (purple) -->
+    <rect x="16" y="158" width="200" height="34" rx="6" fill="#eee7fb" stroke="#7c5cdb" stroke-width="1.5"/>
+    <text x="30" y="174" font-size="10.5" font-weight="700" fill="#5a3fb0">cloudflared reconnects</text>
+    <text x="30" y="187" font-size="9" fill="#5a3fb0">tunnel finds Cloudflare edge</text>
+    <rect x="232" y="172" width="220" height="6" rx="3" fill="#d9dee6"/>
+    <rect class="bar barS2" x="232" y="172" width="220" height="6" rx="3" fill="#e8932a"/>
+    <g class="bdgS2" opacity="0">
+      <circle cx="466" cy="175" r="7" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="462.5,175 465,177.8 469.5,171.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="482" y="179" font-size="10" fill="#1d7a4d">active</text>
+
+    <!-- Row 4: family-ivr serves on :8080 (teal) -->
+    <rect x="16" y="206" width="200" height="34" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="30" y="222" font-size="10.5" font-weight="700" fill="#0e7d70">family-ivr serves on :8080</text>
+    <text x="30" y="235" font-size="9" fill="#0e7d70">re-warms cached voice prompts</text>
+    <rect x="232" y="220" width="220" height="6" rx="3" fill="#d9dee6"/>
+    <rect class="bar barS3" x="232" y="220" width="220" height="6" rx="3" fill="#e8932a"/>
+    <g class="bdgS3" opacity="0">
+      <circle cx="466" cy="223" r="7" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="462.5,223 465,225.8 469.5,219.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="482" y="227" font-size="10" fill="#1d7a4d">active</text>
+
+    <text x="116" y="258" text-anchor="middle" font-size="13" fill="#9aa3b0">&#8595;</text>
+
+    <!-- Row 5: Resolved state tile -->
+    <g class="resolved">
+      <rect x="16" y="266" width="240" height="34" rx="8" fill="#e4f5ea" stroke="#1d9b54" stroke-width="1.5"/>
+      <circle cx="40" cy="283" r="7" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="36.5,283 39,285.8 43.5,279.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="56" y="287" font-size="11.5" font-weight="700" fill="#1d7a4d">Line answers, no hands</text>
+    </g>
+  </g>
+
+  <text x="16" y="312" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" fill="#5b6573">Enabled under systemd, so a power cut or reboot self-heals.</text>
+</svg>

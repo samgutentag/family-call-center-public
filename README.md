@@ -39,13 +39,29 @@ Once a day (default 4am, configurable in `config/wardrobe.yml`), the scheduler p
 
 ### Privacy and the inbox
 
-Twilio's webhooks arrive over a Cloudflare Tunnel at a public URL. The voicemail inbox is a separate door: it only responds to requests whose `Host` header matches `TAILNET_HOSTNAME`, so it stays invisible to the public tunnel. Reach it from any device on your Tailscale tailnet at `http://<TAILNET_HOSTNAME>:8080/`.
+Twilio's webhooks arrive over a named Cloudflare tunnel at a fixed public URL. The voicemail inbox is a separate door: it only responds to requests whose `Host` header matches `TAILNET_HOSTNAME`, so it stays invisible to the public tunnel. Reach it from any device on your Tailscale tailnet at `http://<TAILNET_HOSTNAME>:8080/`.
 
 ![One app, two doors](docs/assets/trust-zones.svg)
 
 ---
 
+## Running it on a Pi
+
+The phone lives on a Raspberry Pi on my desk. A caller hits the Twilio number, Twilio webhooks a named Cloudflare tunnel at a fixed hostname, and that forwards to the app on the Pi. Your own phone reaches the voicemail inbox a different way, over Tailscale, and that path never touches the public URL.
+
+![How the Pi serves the call and the inbox](docs/assets/deployment-topology.svg)
+
+The named tunnel is what makes it durable. A Cloudflare *quick* tunnel hands you a random URL that changes on every restart, which breaks the Twilio webhook each time (ask me how I know). A named tunnel keeps the same hostname for good. The app and the tunnel both run as `systemd` services, so a reboot or a power cut brings the line back on its own.
+
+![What happens after a reboot](docs/assets/reboot-recovery.svg)
+
+The full walkthrough is in [`DEPLOY.md`](DEPLOY.md): the named tunnel, Tailscale for the inbox, both services, and the reboot test.
+
+---
+
 ## Quick start (fresh clone)
+
+This is the laptop test: a call from your phone through a throwaway tunnel. For the durable Raspberry Pi setup (a stable URL that survives reboots), see [`DEPLOY.md`](DEPLOY.md).
 
 ```bash
 git clone <your-repo-url> family-call-center && cd family-call-center

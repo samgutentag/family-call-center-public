@@ -100,12 +100,12 @@
   <dd>A free, open weather API. No account or API key needed. The app uses it to pull today's forecast for your home location once every morning at 4 a.m. and cache it for the day.</dd>
   <dt>Pushover</dt>
   <dd>A simple phone-notification service. The Pi sends it a short message and your phone buzzes. This is how you find out a message was left, and you get the transcript right in the ping.</dd>
-  <dt>Tailscale Funnel</dt>
-  <dd>A way to give your home Pi a public web address so Twilio can reach it over the internet, without opening your home network to the world. Twilio talks to the Pi through this funnel.</dd>
+  <dt>Cloudflare tunnel</dt>
+  <dd>A named tunnel that gives the home Pi a stable public web address so Twilio can reach it, without opening the home network; the address stays the same across reboots.</dd>
   <dt>Tailnet and MagicDNS</dt>
   <dd>Your private Tailscale network and the friendly hostname for the Pi on it (something like <code>pi.your-tailnet.ts.net</code>). Devices on your tailnet (your phone, your laptop) can reach the Pi privately. The public internet cannot.</dd>
   <dt>The Host gate</dt>
-  <dd>The rule that keeps the inbox private. The Pi answers on two addresses (the public funnel and the private tailnet name), and it only serves the inbox and recordings when the request arrives on the private name. Everything else gets a plain "not found".</dd>
+  <dd>The rule that keeps the inbox private. The Pi answers on two addresses (the public Cloudflare address and the private tailnet name), and it only serves the inbox and recordings when the request arrives on the private name. Everything else gets a plain "not found".</dd>
 </dl>
 
 <h2 id="calling">3. Calling: the menu</h2>
@@ -114,21 +114,21 @@
 <p>That is the whole menu. Press 1 and it starts recording. Press 2 and it reads the weather. Press anything else, or wait too long without pressing anything, and it says <em>"Oops, I didn't catch that. Press 1 to leave a message. Or press 2 for the weather!"</em> and tries again rather than hanging up, so a kid mashing buttons never gets stuck.</p>
 
 <figure>
-  <img src="assets/call-flow.svg" alt="Diagram showing what happens on a call: a shared start and menu step, then two branches -- press 1 leads to recording, saving on the Pi, and a Pushover notification; press 2 leads to speaking the forecast, a Pushover notification, and a goodbye hangup.">
+  <img src="assets/call-flow.svg" alt="Diagram showing what happens on a call: a shared start and menu step, then two branches (press 1 leads to recording, saving on the Pi, and a Pushover notification; press 2 leads to speaking the forecast, a Pushover notification, and a goodbye hangup).">
   <figcaption>The two paths a call can take. The menu is the fork. Either way you get a Pushover notification.</figcaption>
 </figure>
 
 <h2 id="press1">4. Press 1: leave a message</h2>
-<p>This is the heart of it -- the "press 1 to leave mom a secret" part. After the kid presses 1, the app says:</p>
+<p>This is the heart of it: the "press 1 to leave mom a secret" part. After the kid presses 1, the app says:</p>
 <p><em>"Okay! After the beep, tell me your message. When you're all done, press the pound key, or just hang up."</em></p>
 <p>Then it beeps and records. A few things are fixed in the code and worth knowing:</p>
 <ul>
   <li>The message can run up to <strong>5 minutes</strong> (300 seconds). After that it stops on its own.</li>
-  <li>Pressing <strong>#</strong> (pound) ends the recording early. The kid does not have to press anything though -- hanging up also ends it.</li>
+  <li>Pressing <strong>#</strong> (pound) ends the recording early. The kid does not have to press anything though; hanging up also ends it.</li>
   <li>When it is done, the app says <em>"Got it! Your message is saved. Talk to you soon. Bye bye!"</em> and hangs up.</li>
 </ul>
 <p>Behind the scenes, once the recording finishes the Pi downloads the audio, sends it to Deepgram to transcribe, saves the audio file, deletes it from Twilio, and sends you a Pushover notification with the transcript right there in the message. The kid does not see any of that. They just leave their secret and hang up.</p>
-<p>If transcription succeeds, the notification shows the transcript in quotes. If Deepgram heard nothing, it says "(No words were heard in this message.)". If transcription failed for any reason, it says "(Transcription failed.)" -- it never hides the failure or pretends it worked.</p>
+<p>If transcription succeeds, the notification shows the transcript in quotes. If Deepgram heard nothing, it says "(No words were heard in this message.)". If transcription failed for any reason, it says "(Transcription failed.)". It never hides the failure or pretends it worked.</p>
 
 <h2 id="press2">5. Press 2: hear the weather</h2>
 <p>Press 2 and the app reads today's weather out loud, in plain, friendly words. It opens with the date, throws in a goofy weather line, then gives the outfit advice and any reminders, then both the morning and afternoon temperatures. Here is what a real forecast sounds like on a rainy school-day morning:</p>
@@ -146,22 +146,22 @@
   <li><strong>Date:</strong> always opens with "Good morning! It's [day of week], [Month] [date]."</li>
   <li><strong>Goofy line:</strong> a fun one-liner picked for the weather type (sunny, cloudy, rainy, snowy, stormy, foggy). It rotates by date so it is never the same two days in a row.</li>
   <li><strong>Outfit:</strong> "Today is [outfit description]." On school days (Monday through Friday) the bands are slightly more conservative than on weekends. Both use the day's high temperature to pick the right outfit tier.</li>
-  <li><strong>Reminders:</strong> automatically added when conditions call for them -- a jacket reminder if the morning is cold or warms up a lot by afternoon, a sunscreen reminder if UV is high, and a rain jacket reminder if there is 40% or higher chance of rain.</li>
+  <li><strong>Reminders:</strong> automatically added when conditions call for them: a jacket reminder if the morning is cold or warms up a lot by afternoon, a sunscreen reminder if UV is high, and a rain jacket reminder if there is 40% or higher chance of rain.</li>
   <li><strong>Temperatures:</strong> closes with the morning high (8 a.m. to noon) and the afternoon high (noon to 4 p.m.) in degrees Fahrenheit.</li>
 </ol>
-<p>All of this -- the outfit bands, the goofy lines for each weather type, the temperature thresholds for reminders, the school-vs-weekend distinction, and individual date overrides (like holidays) -- lives in <code>config/wardrobe.yml</code> and <code>config/day_overrides.yml</code>. They are plain text files you can edit freely without touching any code.</p>
+<p>All of this (the outfit bands, the goofy lines for each weather type, the temperature thresholds for reminders, the school-vs-weekend distinction, and individual date overrides like holidays) lives in <code>config/wardrobe.yml</code> and <code>config/day_overrides.yml</code>. They are plain text files you can edit freely without touching any code.</p>
 <p>The forecast data comes from Open-Meteo, a free global weather API with no account or API key required. The Pi fetches it fresh once a day at 4 a.m. and caches it so the call is instant. If the weather service is slow or unreachable when the child calls, the app says <em>"Hmm, I can't check the weather right now. Try me again in a little while!"</em> and hangs up.</p>
 <div class="note">You also get a Pushover notification showing exactly what the child heard, so you know both that they called and what the forecast said.</div>
 
 <h2 id="voice">6. The voice</h2>
-<p>Every word the child hears is spoken by a Deepgram Aura neural voice (currently "luna", model <code>aura-2-luna-en</code>). The audio is generated at normal speed by Deepgram, then slowed to 85% using ffmpeg's <code>atempo</code> filter -- pitch is preserved, just the pace is easier to follow for a young child.</p>
+<p>Every word the child hears is spoken by a Deepgram Aura neural voice (currently "luna", model <code>aura-2-luna-en</code>). The audio is generated at normal speed by Deepgram, then slowed to 85% using ffmpeg's <code>atempo</code> filter (pitch is preserved; just the pace is easier to follow for a young child).</p>
 
 <figure>
   <img src="assets/voice-pipeline.svg" alt="Diagram of the voice pipeline: text prompt goes to Deepgram Aura, returns as mp3, ffmpeg slows it to 85% speed, the result is cached on the Pi, and Twilio plays it on the call. A fallback path bypasses Deepgram and goes straight to Twilio's built-in Say verb if Deepgram is unavailable.">
   <figcaption>Each prompt is synthesized once and cached. During a call the Pi just points Twilio at the cached file, so there is no synthesis delay mid-call.</figcaption>
 </figure>
 
-<p>Every fixed prompt (the menu greeting, the voicemail prompt, the thank-you, the weather goodbye, and the fallback messages) is pre-generated at startup and cached on disk. During a live call, the app never waits on Deepgram -- it just plays the cached file. The weather forecast text is also synthesized and cached right after the 4 a.m. weather refresh.</p>
+<p>Every fixed prompt (the menu greeting, the voicemail prompt, the thank-you, the weather goodbye, and the fallback messages) is pre-generated at startup and cached on disk. During a live call, the app never waits on Deepgram; it just plays the cached file. The weather forecast text is also synthesized and cached right after the 4 a.m. weather refresh.</p>
 <p>If Deepgram is unavailable or not configured, the app falls back to Twilio's plain built-in voice (<code>&lt;Say&gt;</code>) so the call always works. The child might notice a different voice, but they will not get silence or an error.</p>
 
 <h2 id="notifications">7. What you get notified about</h2>
@@ -172,7 +172,7 @@
     <tr>
       <td>A message is left</td>
       <td>New voicemail</td>
-      <td>The caller's number, the duration in seconds, and the transcript of what they said -- or a note if transcription was empty or failed. Includes a "Listen in the inbox" link to your tailnet inbox if you have a tailnet hostname configured.</td>
+      <td>The caller's number, the duration in seconds, and the transcript of what they said (or a note if transcription was empty or failed). Includes a "Listen in the inbox" link to your tailnet inbox if you have a tailnet hostname configured.</td>
     </tr>
     <tr>
       <td>Someone checks the weather</td>
@@ -185,10 +185,10 @@
 
 <h2 id="inbox">8. The inbox: listening back</h2>
 <p>The inbox is a small web page that lists every message newest-first, each with a play button right there in the row. You open it at <code>http://&lt;your-pi-tailnet-name&gt;:8080/</code> from your phone or laptop.</p>
-<p>The important part is privacy. The same Pi answers the public phone traffic and serves this private inbox, but the inbox only works when you reach the Pi by its private tailnet name. If anyone tries to reach the inbox or a recording over the public funnel address, they get a plain "not found" -- not a login page, not an error, just nothing. Your kids' messages never sit on a public web page.</p>
+<p>The important part is privacy. The same Pi answers the public phone traffic and serves this private inbox, but the inbox only works when you reach the Pi by its private tailnet name. If anyone tries to reach the inbox or a recording over the public web address, they get a plain "not found": not a login page, not an error, just nothing. Your kids' messages never sit on a public web page.</p>
 
 <figure>
-  <img src="assets/trust-zones.svg" alt="Diagram showing one Pi app with two doors: Twilio call traffic reaches the call and weather routes and is allowed after signature checking. A browser via the public Funnel trying to reach the inbox gets a 404 and is blocked. A browser via the tailnet reaching the inbox gets a 200 and plays the recording.">
+  <img src="assets/trust-zones.svg" alt="Diagram showing one Pi app with two doors: Twilio call traffic reaches the call and weather routes and is allowed after signature checking. A browser via the public URL trying to reach the inbox gets a 404 and is blocked. A browser via the tailnet reaching the inbox gets a 200 and plays the recording.">
   <figcaption>The privacy rule in one picture. Call traffic is let in on the public side. The inbox is served only to your private network.</figcaption>
 </figure>
 
@@ -199,25 +199,37 @@
 <ul>
   <li>Your home location (latitude and longitude) lives only in the <code>.env</code> file on the Pi. It is never in the application code, never sent to Twilio, and never included in any notification.</li>
   <li>Recordings are deleted from Twilio immediately after the Pi downloads them. Twilio holds the audio for only a few seconds.</li>
-  <li>The inbox is invisible to the public internet. There is no login page or access control to bypass -- the inbox simply does not exist from the public side.</li>
+  <li>The inbox is invisible to the public internet. There is no login page or access control to bypass; the inbox simply does not exist from the public side.</li>
 </ul>
 
 <h2 id="setup">10. Setting it up (for the grown-up)</h2>
-<p>This part is for whoever runs the Pi. The full step-by-step lives in <code>SETUP.md</code> in the project. The short version is five things you need in place:</p>
+<p>This part is for whoever runs the Pi. The full durable Raspberry Pi setup lives in <code>DEPLOY.md</code>; <code>SETUP.md</code> covers a quick laptop test. The short version is the pieces you need in place:</p>
 <ol>
-  <li><strong>Twilio:</strong> buy a phone number and point its voice webhook at your Pi's public Funnel address followed by <code>/call</code>.</li>
-  <li><strong>Deepgram:</strong> a free or paid Deepgram account for the voice and transcription. Without it the app falls back to Twilio's built-in voice and skips transcription, so it still works -- just without the warm voice and in-notification transcript.</li>
-  <li><strong>Pushover:</strong> optional but recommended. Create an app token and a user key; add them to <code>.env</code>. Without them, everything still records -- you just do not get a ping.</li>
-  <li><strong>Tailscale:</strong> a public Funnel so Twilio can reach the Pi, and the private tailnet hostname for the inbox.</li>
+  <li><strong>Twilio:</strong> buy a phone number and point its voice webhook at your Pi's public web address followed by <code>/call</code>.</li>
+  <li><strong>Deepgram:</strong> a free or paid Deepgram account for the voice and transcription. Without it the app falls back to Twilio's built-in voice and skips transcription, so it still works, just without the warm voice and in-notification transcript.</li>
+  <li><strong>Pushover:</strong> optional but recommended. Create an app token and a user key; add them to <code>.env</code>. Without them, everything still records; you just do not get a ping.</li>
+  <li><strong>Cloudflare:</strong> a named tunnel giving the Pi a stable public address for Twilio, unchanged across restarts.</li>
+  <li><strong>Tailscale:</strong> the private tailnet that serves the inbox to your own devices only.</li>
   <li><strong>ffmpeg:</strong> installed on the Pi for the speech-rate adjustment. Without it the voice plays at normal speed instead of the slowed-down rate.</li>
 </ol>
 <div class="note">One setting catches people out: the service must run with <code>HOST=0.0.0.0</code> (the included service file sets this for you). Without it the app only listens to itself and the inbox will not open from your phone, even on the tailnet. The Host gate still keeps it private.</div>
+
+<figure>
+  <img src="assets/deployment-topology.svg" alt="Diagram of the deployment topology: a caller reaches Twilio, which connects through a named Cloudflare tunnel to the app running on the Pi; separately, your phone reaches the private inbox over Tailscale, which bypasses the public internet entirely.">
+  <figcaption>How traffic flows in the durable deployment. Public call traffic arrives through the Cloudflare tunnel. Your inbox traffic arrives privately through Tailscale.</figcaption>
+</figure>
+
+<figure>
+  <img src="assets/reboot-recovery.svg" alt="Diagram showing what happens after a reboot or power cut: systemd restarts tailscaled, then cloudflared, then the app, and the line begins answering again with no manual intervention needed.">
+  <figcaption>After a reboot or power cut, systemd brings up the tunnel and the app automatically. The line answers again on its own.</figcaption>
+</figure>
+
 <h4>The settings you provide in <code>.env</code></h4>
 <table>
   <thead><tr><th>Setting</th><th>What it is for</th></tr></thead>
   <tbody>
     <tr><td><code>TWILIO_*</code></td><td>Your Twilio account credentials and phone number.</td></tr>
-    <tr><td><code>BASE_URL</code></td><td>The public Funnel address Twilio calls back to.</td></tr>
+    <tr><td><code>BASE_URL</code></td><td>The stable public address (a named Cloudflare tunnel) Twilio calls back to.</td></tr>
     <tr><td><code>TAILNET_HOSTNAME</code></td><td>The Pi's private tailnet name. The inbox only serves requests that arrive on this hostname.</td></tr>
     <tr><td><code>DEEPGRAM_API_KEY</code></td><td>Your Deepgram key for voice synthesis and transcription. Leave blank and the app falls back to Twilio's built-in voice with no transcription.</td></tr>
     <tr><td><code>DEEPGRAM_TTS_MODEL</code></td><td>Which Aura voice to use. Defaults to <code>aura-2-andromeda-en</code>; the deployed voice is <code>aura-2-luna-en</code>.</td></tr>
@@ -230,7 +242,10 @@
 <h2 id="faq">11. Good to know</h2>
 <dl class="defn">
   <dt>Can other people on the internet hear my kid's messages?</dt>
-  <dd>No. The inbox and the recordings are only served to devices on your private tailnet. A request from the public side gets a plain "not found" -- not a login form, not the audio. There is nothing to bypass.</dd>
+  <dd>No. The inbox and the recordings are only served to devices on your private tailnet. A request from the public side gets a plain "not found": not a login form, not the audio. There is nothing to bypass.</dd>
+
+  <dt>Does it come back on its own after a reboot or power cut?</dt>
+  <dd>Yes. The app and the Cloudflare tunnel both run as systemd services that start on boot. After any reboot or power cut, the Pi comes back up, the services restart automatically, and the line answers again with no intervention from you.</dd>
 
   <dt>What happens if the Pi is off or the internet is down?</dt>
   <dd>Twilio cannot reach the app, so the caller will not get the menu. Nothing is lost; there is just no answer until the Pi is back. Once it is back, new calls work normally.</dd>
@@ -239,10 +254,10 @@
   <dd>Twilio charges a small monthly fee for the phone number and per-minute charges for calls. The app deletes each recording from Twilio right after saving it, so storage costs stay near zero. Open-Meteo is free with no account required. Deepgram has a free tier. Pushover is a one-time small purchase.</dd>
 
   <dt>Can I change the voice, the speed, or the jokes?</dt>
-  <dd>Yes to all three. The voice and speed are set by <code>DEEPGRAM_TTS_MODEL</code> and <code>SPEECH_RATE</code> in your <code>.env</code> file. The goofy weather lines and outfit advice live in <code>config/wardrobe.yml</code> -- it is a plain text file you can edit freely. After changing the voice or speed, restart the app so it re-synthesizes the cached prompts.</dd>
+  <dd>Yes to all three. The voice and speed are set by <code>DEEPGRAM_TTS_MODEL</code> and <code>SPEECH_RATE</code> in your <code>.env</code> file. The goofy weather lines and outfit advice live in <code>config/wardrobe.yml</code>, a plain text file you can edit freely. After changing the voice or speed, restart the app so it re-synthesizes the cached prompts.</dd>
 
   <dt>How does it know whether today is a school day?</dt>
-  <dd>Monday through Friday are school days by default; Saturday and Sunday are weekend days. You can override any individual date (for holidays, days off, or anything else) in <code>config/day_overrides.yml</code>. School-day and weekend outfit bands are slightly different -- the weekend bands are a little more casual.</dd>
+  <dd>Monday through Friday are school days by default; Saturday and Sunday are weekend days. You can override any individual date (for holidays, days off, or anything else) in <code>config/day_overrides.yml</code>. School-day and weekend outfit bands are slightly different; the weekend bands are a little more casual.</dd>
 
   <dt>Is there a "press 3"?</dt>
   <dd>Not in this version. The menu is press 1 (message) and press 2 (weather). Anything else just repeats the menu. More options can be added the same way press 2 was.</dd>

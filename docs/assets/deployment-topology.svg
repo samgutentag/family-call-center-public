@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 256" width="660" height="256"
+  role="img"
+  aria-label="Network topology of how one Raspberry Pi serves both the phone and the private inbox. A Raspberry Pi container box named devbox-pi-1 on the right holds the family-ivr app on port 8080. Two lanes feed into it. The top lane (blue, public): a Caller dials a Twilio number, Twilio sends a webhook to a public Cloudflare named tunnel at callcenter.gutentag.world, which forwards to the app, ending at the /call route. The bottom lane (teal, private): your phone reaches the inbox over Tailscale on the tailnet, landing on the same app. Animated: a pulse dot travels left to right along the top lane and the app's call route lights with a green check, then the same happens along the bottom lane into the inbox. The finished frame holds before looping. Frozen, both lanes are complete with green checks.">
+  <!--
+    TIMING (8s loop). One travel = 0.5s = 6.25%. Pause ~0.3s = 3.75%.
+    Top lane dot travels:    0%      to 6.25%
+    Top route lights/check:  6.25%   to ~9%
+    Bottom lane dot travels: 10%     to 16.25%
+    Bottom inbox lights:     16.25%  to ~19%
+    finished frame HOLDS     ~19% to 100% (about 6.5s linger)
+    (Write "to", not a double hyphen, illegal inside an XML comment.)
+  -->
+  <style>
+    .dot { transform-box: fill-box; transform-origin: center; }
+    .dotTop { animation: dotTop 8s linear infinite; }
+    .dotBot { animation: dotBot 8s linear infinite; }
+    .litTop { animation: litTop 8s linear infinite; }
+    .litBot { animation: litBot 8s linear infinite; }
+    .bdgTop { animation: bdgTop 8s linear infinite; }
+    .bdgBot { animation: bdgBot 8s linear infinite; }
+
+    /* Top lane dot: runs x=150 to x=500 (the app tile), then hides */
+    @keyframes dotTop {
+      0%    { opacity: 0; transform: translateX(0px); }
+      1%    { opacity: 1; transform: translateX(0px); }
+      6.25% { opacity: 1; transform: translateX(350px); }
+      7.25%,100% { opacity: 0; transform: translateX(350px); }
+    }
+    @keyframes dotBot {
+      0%,10%  { opacity: 0; transform: translateX(0px); }
+      11%     { opacity: 1; transform: translateX(0px); }
+      16.25%  { opacity: 1; transform: translateX(350px); }
+      17.25%,100% { opacity: 0; transform: translateX(350px); }
+    }
+    /* App call-route tile lights when the top dot arrives */
+    @keyframes litTop { 0%,6.25% { opacity: 0; } 7.25%,100% { opacity: 1; } }
+    @keyframes litBot { 0%,16.25% { opacity: 0; } 17.25%,100% { opacity: 1; } }
+    @keyframes bdgTop { 0%,7.25% { opacity: 0; } 9%,100% { opacity: 1; } }
+    @keyframes bdgBot { 0%,17.25% { opacity: 0; } 19%,100% { opacity: 1; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dotTop, .dotBot { animation: none; opacity: 0; }
+      .litTop, .litBot, .bdgTop, .bdgBot { animation: none; opacity: 1; }
+    }
+  </style>
+
+  <rect x="0" y="0" width="660" height="256" rx="10" fill="#ffffff"/>
+  <text x="16" y="26" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#3a4350">One Pi, two doors: serving the phone and the private inbox</text>
+
+  <g font-family="ui-sans-serif, system-ui, sans-serif">
+
+    <!-- ===== Raspberry Pi container box (right) ===== -->
+    <rect x="470" y="48" width="174" height="186" rx="10" fill="#f7f9fc" stroke="#9aa3b0" stroke-width="1.5"/>
+    <text x="557" y="66" text-anchor="middle" font-size="10" font-weight="700" fill="#5b6573">Raspberry Pi: devbox-pi-1</text>
+    <text x="557" y="80" text-anchor="middle" font-size="9" fill="#9aa3b0">systemd: family-ivr (waitress)</text>
+
+    <!-- App tile holding two routes, both inside the Pi box -->
+    <rect x="486" y="92" width="142" height="128" rx="8" fill="#ffffff" stroke="#9aa3b0" stroke-width="1.2"/>
+    <text x="557" y="108" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b6573">family-ivr app :8080</text>
+
+    <!-- Public route tile (blue) -->
+    <rect x="498" y="118" width="118" height="42" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <rect class="litTop" x="498" y="118" width="118" height="42" rx="6" fill="#346DDB" opacity="0"/>
+    <text x="557" y="135" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">/call, /weather</text>
+    <text x="557" y="148" text-anchor="middle" font-size="8.5" fill="#1f5fc0">public path</text>
+    <g class="bdgTop" opacity="0">
+      <circle cx="610" cy="120" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="607,120 609,122.4 613,117.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Private route tile (teal) -->
+    <rect x="498" y="166" width="118" height="42" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <rect class="litBot" x="498" y="166" width="118" height="42" rx="6" fill="#18a394" opacity="0"/>
+    <text x="557" y="183" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">inbox</text>
+    <text x="557" y="196" text-anchor="middle" font-size="8.5" fill="#0e7d70">tailnet only</text>
+    <g class="bdgBot" opacity="0">
+      <circle cx="610" cy="168" r="6.5" fill="#1d9b54" stroke="#fff" stroke-width="1.3"/>
+      <polyline points="607,168 609,170.4 613,165.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- ===== TOP LANE (blue, public) y-center 86 ===== -->
+    <!-- Caller -->
+    <rect x="16" y="69" width="62" height="34" rx="6" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="47" y="90" text-anchor="middle" font-size="10" font-weight="700" fill="#1f5fc0">Caller</text>
+    <text x="89" y="90" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Twilio -->
+    <rect x="100" y="69" width="64" height="34" rx="8" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="132" y="90" text-anchor="middle" font-size="10" font-weight="700" fill="#1f5fc0">Twilio</text>
+    <text x="175" y="90" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Cloudflare named tunnel -->
+    <rect x="186" y="66" width="170" height="40" rx="8" fill="#e3edfc" stroke="#346DDB" stroke-width="1.5"/>
+    <text x="271" y="83" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1f5fc0">Cloudflare named tunnel</text>
+    <text x="271" y="96" text-anchor="middle" font-size="9" fill="#1f5fc0">callcenter.gutentag.world</text>
+
+    <!-- lane line from tunnel into Pi public route -->
+    <line x1="356" y1="86" x2="498" y2="139" stroke="#346DDB" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="424" y="104" text-anchor="middle" font-size="8.5" fill="#1f5fc0">webhook &#8594; :8080</text>
+
+    <!-- travelling pulse dot, top lane (starts on Caller exit x=150,y=86) -->
+    <circle class="dot dotTop" cx="150" cy="86" r="5" fill="#346DDB" opacity="0"/>
+
+    <!-- ===== BOTTOM LANE (teal, private) y-center 181 ===== -->
+    <!-- Your phone -->
+    <rect x="16" y="164" width="78" height="34" rx="6" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="55" y="185" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7d70">Your phone</text>
+    <text x="105" y="185" text-anchor="middle" font-size="12" fill="#9aa3b0">&#8594;</text>
+
+    <!-- Tailscale -->
+    <rect x="116" y="161" width="170" height="40" rx="8" fill="#e2f4f1" stroke="#18a394" stroke-width="1.5"/>
+    <text x="201" y="178" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0e7d70">Tailscale</text>
+    <text x="201" y="191" text-anchor="middle" font-size="9" fill="#0e7d70">the tailnet (private)</text>
+
+    <!-- lane line from Tailscale into Pi inbox route -->
+    <line x1="286" y1="181" x2="498" y2="187" stroke="#18a394" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="392" y="176" text-anchor="middle" font-size="8.5" fill="#0e7d70">tailnet &#8594; :8080</text>
+
+    <!-- travelling pulse dot, bottom lane (starts at x=150,y=181) -->
+    <circle class="dot dotBot" cx="150" cy="181" r="5" fill="#18a394" opacity="0"/>
+
+  </g>
+
+  <text x="16" y="246" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" fill="#5b6573">Twilio comes in the public Cloudflare door; the inbox opens only on your tailnet.</text>
+</svg>

@@ -1,5 +1,10 @@
 # Setup (Raspberry Pi)
 
+> **Deploying durably on a Pi?** Use [`DEPLOY.md`](DEPLOY.md). It sets up a named
+> Cloudflare tunnel (stable URL across reboots), Tailscale, and `systemd` services
+> so the line self-heals after a power cut. This page is the quick-tunnel test path
+> (good for a first call from your laptop) and the troubleshooting reference.
+
 ## 1. Twilio
 - Buy a phone number (with **Voice**) in the [Twilio console](https://console.twilio.com).
 - Credentials for `.env` come from the **Account Info** card on the console home
@@ -17,7 +22,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.template .env
-# Fill in .env: Twilio creds, BASE_URL (Funnel host), TAILNET_HOSTNAME,
+# Fill in .env: Twilio creds, BASE_URL (tunnel host), TAILNET_HOSTNAME,
 # PUSHOVER_*, WEATHER_LAT/LON/PLACE_NAME, DATA_DIR.
 ```
 
@@ -40,18 +45,20 @@ Twilio needs a public HTTPS URL that forwards to the app on `localhost:8080`.
 trailing slash) or Twilio's request signature will not validate (you'll get
 403s).
 
-### Tailscale notes (still used for the private inbox)
+### Tailscale notes (the private inbox)
 - `tailscale up` must show **logged in** (`tailscale status`); the menu-bar app
   being signed in does not guarantee the CLI daemon is.
-- With Tailscale, **the Funnel public URL and the tailnet MagicDNS name are the
-  same hostname**. The inbox `Host` gate therefore cannot distinguish public
-  Funnel traffic from private tailnet traffic on its own. If you serve the inbox
-  over the tailnet, do **not** also Funnel `/` publicly. Safe options: leave
-  `TAILNET_HOSTNAME` blank to disable the inbox during a webhook-only test, or
-  reach the inbox locally with `TAILNET_HOSTNAME=localhost` and
-  `http://localhost:8080/`.
-- First-time Funnel must be enabled once per tailnet; `tailscale funnel` prints
-  a `login.tailscale.com/f/funnel?...` link to click.
+- Set `TAILNET_HOSTNAME` to the Pi's MagicDNS name (e.g.
+  `devbox-pi-1.tailXXXX.ts.net`) and open the inbox at
+  `http://<TAILNET_HOSTNAME>:8080/` from any device on your tailnet. The `Host`
+  gate 404s that same path on the public URL.
+- For a laptop-only test with no tailnet, set `TAILNET_HOSTNAME=localhost` and
+  reach the inbox at `http://localhost:8080/`.
+- Putting the public door on **Cloudflare** and the private door on **Tailscale**
+  means they are different hostnames, so the `Host` gate tells them apart cleanly.
+  Tailscale **Funnel** would make the public URL and the tailnet name identical and
+  the gate could not separate them, which is why the durable setup uses Cloudflare
+  for the public side. See [`DEPLOY.md`](DEPLOY.md).
 
 ## 4. Run as a service
 ```bash
