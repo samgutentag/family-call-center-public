@@ -53,8 +53,6 @@ The phone lives on a Raspberry Pi on my desk. A caller hits the Twilio number, T
 
 The named tunnel is what makes it durable. A Cloudflare *quick* tunnel hands you a random URL that changes on every restart, which breaks the Twilio webhook each time (ask me how I know). A named tunnel keeps the same hostname for good. The app and the tunnel both run as `systemd` services, so a reboot or a power cut brings the line back on its own.
 
-![What happens after a reboot](docs/assets/reboot-recovery.svg)
-
 The full walkthrough is in [`DEPLOY.md`](DEPLOY.md): the named tunnel, Tailscale for the inbox, both services, and the reboot test.
 
 ---

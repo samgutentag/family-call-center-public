@@ -219,11 +219,6 @@
   <figcaption>How traffic flows in the durable deployment. Public call traffic arrives through the Cloudflare tunnel. Your inbox traffic arrives privately through Tailscale.</figcaption>
 </figure>
 
-<figure>
-  <img src="assets/reboot-recovery.svg" alt="Diagram showing what happens after a reboot or power cut: systemd restarts tailscaled, then cloudflared, then the app, and the line begins answering again with no manual intervention needed.">
-  <figcaption>After a reboot or power cut, systemd brings up the tunnel and the app automatically. The line answers again on its own.</figcaption>
-</figure>
-
 <h4>The settings you provide in <code>.env</code></h4>
 <table>
   <thead><tr><th>Setting</th><th>What it is for</th></tr></thead>
