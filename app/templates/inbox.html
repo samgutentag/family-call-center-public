@@ -5,26 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Voicemail Inbox</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 700px; }
-    h1 { font-size: 1.4rem; }
-    .vm { border-bottom: 1px solid #ddd; padding: 0.75rem 0; }
-    .meta { color: #555; font-size: 0.9rem; }
-    audio { width: 100%; margin-top: 0.5rem; }
-    .empty { color: #888; }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 1.25rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #ddd;
+    }
+
+    .empty {
+      color: #888;
+      font-size: 1rem;
+      padding: 1.5rem 0;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 0.4rem;
+      line-height: 1.5;
+    }
+
+    .meta strong {
+      color: #111;
+      font-size: 0.95rem;
+    }
+
+    .transcript {
+      font-style: italic;
+      color: #333;
+      margin: 0.6rem 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .transcript.none {
+      color: #aaa;
+      font-style: normal;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 0.75rem;
+      min-height: 44px;
+    }
   </style>
 </head>
 <body>
-  <h1>Voicemail Inbox</h1>
-  {% if not recordings %}
-    <p class="empty">No voicemails yet.</p>
-  {% endif %}
-  {% for r in recordings %}
-    <div class="vm" id="rec-{{ r.id }}">
-      <div class="meta">
-        {{ r.created_at }} &middot; from {{ r.caller_id }} &middot; {{ r.duration }}s
+  <div class="container">
+    <h1>Voicemail Inbox</h1>
+    {% if not recordings %}
+      <p class="empty">No voicemails yet.</p>
+    {% endif %}
+    {% for r in recordings %}
+      <div class="card" id="rec-{{ r.id }}">
+        <div class="meta">
+          <strong>{{ r.caller_id }}</strong><br />
+          {{ r.created_at }} &middot; {{ r.duration }}s
+        </div>
+        {% if r.transcript %}
+          <p class="transcript">"{{ r.transcript }}"</p>
+        {% else %}
+          <p class="transcript none">(no transcript)</p>
+        {% endif %}
+        <audio controls preload="none" src="/recordings/{{ r.filename }}"></audio>
       </div>
-      <audio controls preload="none" src="/recordings/{{ r.filename }}"></audio>
-    </div>
-  {% endfor %}
+    {% endfor %}
+  </div>
 </body>
 </html>

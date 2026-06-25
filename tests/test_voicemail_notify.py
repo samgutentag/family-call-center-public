@@ -67,11 +67,17 @@ def test_callback_includes_transcript(client):
             "RecordingDuration": "5", "From": "+15551112222"}
     with patch("app.routes.voicemail.http_requests.get") as get, \
          patch("app.routes.voicemail._delete_from_twilio"), \
-         patch("app.routes.voicemail.deepgram_stt.transcribe", return_value="hi mom i love you"), \
+         patch("app.routes.voicemail.deepgram_stt.transcribe", return_value="hi mom i love you") as mock_stt, \
+         patch("app.routes.voicemail.log_recording") as mock_log, \
          patch("app.routes.voicemail.pushover.send_notification") as notify:
         get.return_value.content = b"RIFFfake"
         get.return_value.raise_for_status.return_value = None
         client.post("/voicemail/callback?caller=%2B15551112222", data=fake)
+    # transcribe must be called exactly once
+    mock_stt.assert_called_once()
+    # transcript must be stored in the db
+    assert mock_log.call_args.kwargs.get("transcript") == "hi mom i love you"
+    # transcript must appear in the Pushover message
     assert "hi mom i love you" in notify.call_args.kwargs["message"]
 
 

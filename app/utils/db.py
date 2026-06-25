@@ -23,20 +23,25 @@ def init_db():
                 duration    INTEGER,
                 filename    TEXT    NOT NULL,
                 file_size   INTEGER,
-                twilio_sid  TEXT
+                twilio_sid  TEXT,
+                transcript  TEXT
             )
         """)
+        try:
+            conn.execute("ALTER TABLE recordings ADD COLUMN transcript TEXT")
+        except sqlite3.OperationalError:
+            pass  # column already exists
         conn.commit()
 
 
-def log_recording(created_at, caller_id, duration, filename, file_size, twilio_sid):
+def log_recording(created_at, caller_id, duration, filename, file_size, twilio_sid, transcript=None):
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO recordings (created_at, caller_id, duration, filename, file_size, twilio_sid)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO recordings (created_at, caller_id, duration, filename, file_size, twilio_sid, transcript)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (created_at, caller_id, duration, filename, file_size, twilio_sid),
+            (created_at, caller_id, duration, filename, file_size, twilio_sid, transcript),
         )
         conn.commit()
 
@@ -45,7 +50,7 @@ def list_recordings(limit=100):
     with get_connection() as conn:
         rows = conn.execute(
             """
-            SELECT id, created_at, caller_id, duration, filename, file_size
+            SELECT id, created_at, caller_id, duration, filename, file_size, transcript
             FROM recordings
             ORDER BY datetime(created_at) DESC
             LIMIT ?

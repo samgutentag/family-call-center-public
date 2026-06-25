@@ -104,6 +104,8 @@ def voicemail_callback():
         file_size = os.path.getsize(filepath)
         logger.info("Saved recording to %s (%d bytes)", filepath, file_size)
 
+        transcript = deepgram_stt.transcribe(response.content)
+
         log_recording(
             created_at=now.isoformat(),
             caller_id=caller_id,
@@ -111,13 +113,13 @@ def voicemail_callback():
             filename=os.path.join(date_path, filename),
             file_size=file_size,
             twilio_sid=recording_sid,
+            transcript=transcript,
         )
 
         # Delete from Twilio to avoid storage costs
         _delete_from_twilio(recording_sid)
 
         try:
-            transcript = deepgram_stt.transcribe(response.content)
             if transcript:
                 detail = f'\n\n"{transcript}"'
             elif transcript == "":

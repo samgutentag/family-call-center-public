@@ -64,13 +64,15 @@ FUNNEL = {"Host": "funnel.example.ts.net"}
 
 def test_inbox_lists_recordings_on_tailnet(client):
     rows = [{"id": 1, "created_at": "2026-06-22T10:00:00+00:00", "caller_id": "+1",
-             "duration": 9, "filename": "2026/06/22/b.wav", "file_size": 200}]
+             "duration": 9, "filename": "2026/06/22/b.wav", "file_size": 200,
+             "transcript": "hey it is grandma call me back"}]
     with patch("app.routes.inbox.list_recordings", return_value=rows):
         resp = client.get("/", headers=TAILNET)
     assert resp.status_code == 200
     body = resp.get_data(as_text=True)
     assert "<audio" in body
     assert "/recordings/2026/06/22/b.wav" in body
+    assert "hey it is grandma call me back" in body
 
 
 def test_inbox_404_over_funnel(client):
