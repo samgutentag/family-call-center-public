@@ -60,3 +60,29 @@ def test_callback_reads_caller_from_query(client):
     assert resp.status_code == 204
     sent_message = notify.call_args.kwargs["message"]
     assert "+15559998888" in sent_message
+
+
+def test_callback_includes_transcript(client):
+    fake = {"RecordingSid": "RE1", "RecordingUrl": "https://api.twilio.com/REC",
+            "RecordingDuration": "5", "From": "+15551112222"}
+    with patch("app.routes.voicemail.http_requests.get") as get, \
+         patch("app.routes.voicemail._delete_from_twilio"), \
+         patch("app.routes.voicemail.deepgram_stt.transcribe", return_value="hi mom i love you"), \
+         patch("app.routes.voicemail.pushover.send_notification") as notify:
+        get.return_value.content = b"RIFFfake"
+        get.return_value.raise_for_status.return_value = None
+        client.post("/voicemail/callback?caller=%2B15551112222", data=fake)
+    assert "hi mom i love you" in notify.call_args.kwargs["message"]
+
+
+def test_callback_reports_transcription_failure(client):
+    fake = {"RecordingSid": "RE2", "RecordingUrl": "https://api.twilio.com/REC2",
+            "RecordingDuration": "5", "From": "+1"}
+    with patch("app.routes.voicemail.http_requests.get") as get, \
+         patch("app.routes.voicemail._delete_from_twilio"), \
+         patch("app.routes.voicemail.deepgram_stt.transcribe", return_value=None), \
+         patch("app.routes.voicemail.pushover.send_notification") as notify:
+        get.return_value.content = b"RIFFfake"
+        get.return_value.raise_for_status.return_value = None
+        client.post("/voicemail/callback?caller=%2B1", data=fake)
+    assert "Transcription failed" in notify.call_args.kwargs["message"]

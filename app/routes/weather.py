@@ -15,16 +15,8 @@ weather_bp = Blueprint("weather", __name__)
 @weather_bp.post("/weather")
 @validate_twilio_request
 def weather():
-    """Notify the weather was checked, then speak the cached instruction."""
+    """Speak the cached weather instruction (twice) and notify what was said."""
     caller = request.form.get("From", "unknown")
-    try:
-        pushover.send_notification(
-            title="Weather check",
-            message=f"Someone checked the weather from {caller}.",
-        )
-    except Exception:
-        logger.warning("Pushover weather notify failed", exc_info=True)
-
     try:
         vr = VoiceResponse()
         row = weather_cache.read()
@@ -34,6 +26,18 @@ def weather():
                 row = weather_cache.read()
             except Exception:
                 logger.exception("Live weather refresh failed")
+
+        # Notify with exactly what the child heard (the cached text), once,
+        # even though the call plays it twice. Best-effort.
+        spoken = row["instruction"] if row else voice.WEATHER_FALLBACK
+        try:
+            pushover.send_notification(
+                title="Weather check",
+                message=f"Weather check from {caller}:\n\n{spoken}",
+            )
+        except Exception:
+            logger.warning("Pushover weather notify failed", exc_info=True)
+
         if row:
             voice.speak(vr, row["instruction"])
             voice.speak(vr, row["instruction"])

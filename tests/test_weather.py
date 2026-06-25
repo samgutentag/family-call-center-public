@@ -87,3 +87,24 @@ def test_weather_refreshes_when_stale_nonempty(client):
     body = resp.get_data(as_text=True)
     assert body.count("fresh line.") == 2
     assert "<Hangup />" in body
+
+
+def test_weather_notification_includes_spoken_text(client):
+    row = {"instruction": "Good morning! Today is a skort day.", "day_type": "school",
+           "fetched_at": "2026-06-24T04:00:00"}
+    with patch("app.routes.weather.weather_cache.read", return_value=row), \
+         patch("app.routes.weather.weather_cache.is_fresh", return_value=True), \
+         patch("app.routes.weather.pushover.send_notification") as notify:
+        client.post("/weather", data={"From": "+15551234567"})
+    msg = notify.call_args.kwargs["message"]
+    assert "Good morning! Today is a skort day." in msg
+    assert "+15551234567" in msg
+
+
+def test_weather_notification_reports_fallback(client):
+    with patch("app.routes.weather.weather_cache.read", return_value=None), \
+         patch("app.routes.weather.weather_cache.is_fresh", return_value=False), \
+         patch("app.routes.weather.scheduler.refresh", side_effect=RuntimeError("x")), \
+         patch("app.routes.weather.pushover.send_notification") as notify:
+        client.post("/weather", data={"From": "+1"})
+    assert "can't check the weather" in notify.call_args.kwargs["message"].lower()

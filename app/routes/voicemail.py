@@ -8,7 +8,7 @@ from flask import Blueprint, request
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 
-from app.services import pushover, voice
+from app.services import deepgram_stt, pushover, voice
 from app.utils.db import init_db, log_recording
 from app.utils.twilio_validator import validate_twilio_request
 from app.utils.twiml import error_response, twiml_response
@@ -117,13 +117,20 @@ def voicemail_callback():
         _delete_from_twilio(recording_sid)
 
         try:
+            transcript = deepgram_stt.transcribe(response.content)
+            if transcript:
+                detail = f'\n\n"{transcript}"'
+            elif transcript == "":
+                detail = "\n\n(No words were heard in this message.)"
+            else:
+                detail = "\n\n(Transcription failed.)"
             listen_url = None
             if Config.TAILNET_HOSTNAME:
                 port = os.getenv("PORT", "8080")
                 listen_url = f"http://{Config.TAILNET_HOSTNAME}:{port}/"
             pushover.send_notification(
                 title="New voicemail",
-                message=f"{caller_id} left a {int(duration)} second message.",
+                message=f"{caller_id} left a {int(duration)} second message.{detail}",
                 url=listen_url,
                 url_title="Listen in the inbox" if listen_url else None,
             )
