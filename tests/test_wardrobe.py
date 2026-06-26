@@ -70,7 +70,17 @@ def test_weekend_band_by_high():
 
 
 def test_band_boundary_is_inclusive():
-    assert "Today is a pants and long sleeve day." in _build(_fc(day_high=62))
+    assert "Today is a pants and long sleeve day." in _build(_fc(morning_high=58, afternoon_high=62))
+
+
+def test_outfit_ignores_evening_peak():
+    # Cool morning and afternoon, but the daily max is a late-evening spike.
+    # A kid dresses in the morning, so the outfit must reflect the daytime high
+    # (max of morning and afternoon), not the 7pm peak that day_high captures.
+    fc = _fc(day_high=74, morning_high=66, afternoon_high=70)
+    out = _build(fc)
+    assert "Today is a skort and long sleeve day." in out
+    assert "skort and t-shirt day" not in out
 
 
 def test_morning_jacket_by_absolute_cold():

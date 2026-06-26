@@ -48,7 +48,10 @@ def build_instruction(forecast, day_type, rules, today=None):
     goofy = _scenario_line(forecast["conditions"], rules.get("scenarios", {}), today)
     if goofy:
         parts.append(goofy)
-    parts.append(f"Today is {_outfit(forecast['day_high'], bands)}.")
+    # Dress for the daytime high (when the kid is actually out), not day_high,
+    # which can be a late-evening peak hours after school.
+    daytime_high = max(forecast["morning_high"], forecast["afternoon_high"])
+    parts.append(f"Today is {_outfit(daytime_high, bands)}.")
     if (forecast["morning_high"] < th["morning_jacket_below"]
             or forecast["afternoon_high"] - forecast["morning_high"] >= th["morning_jacket_delta"]):
         parts.append("Take a jacket for the morning, it warms up later.")
